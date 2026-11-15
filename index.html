@@ -232,10 +232,10 @@ h1{font-size:22px;margin:8px 0 4px}.back{border:0;background:none;color:var(--gr
  <button data-screen="habits" onclick="show('habits')"><span>♡</span>Habitudes</button>
  <button data-screen="goals" onclick="show('goals')"><span>◎</span>Objectifs</button>
 </nav>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script defer src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script>
-// FoodPlanner V3.5 — IndexedDB is the only persistent application store.
+// FoodPlanner V3.5 — IndexedDB is the only persistent application store. External optional libraries load without blocking the app.
 const FP_SEED = {"fp_goals":{"kcal":1849,"protein":140},"fp_habits":[],"fp_products":[{"id":"1794729796126","name":"Lentilles préparées 1/2","category":"Fruits et légumes","unit":"100 g","packageQuantity":"265 g","kcal":94,"protein":6.6,"carbs":14,"fat":0.5,"brand":"Cassegrain","barcode":"3083680613576","availability":[{"day":"Lundi","meal":"Dîner"},{"day":"Mardi","meal":"Déjeuner"},{"day":"Mardi","meal":"Dîner"},{"day":"Mercredi","meal":"Dîner"},{"day":"Jeudi","meal":"Dîner"},{"day":"Vendredi","meal":"Déjeuner"},{"day":"Vendredi","meal":"Dîner"},{"day":"Samedi","meal":"Déjeuner"},{"day":"Samedi","meal":"Dîner"},{"day":"Dimanche","meal":"Déjeuner"},{"day":"Dimanche","meal":"Dîner"}],"days":["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"],"meals":["Dîner","Déjeuner"]}],"fp_energy_profile":{"age":37,"sex":"male","weight":68.9,"height":183,"activity":1.3,"walk":0,"run":0,"sport":0,"garden":0,"mode":"-300","protein":140}};
 const fpCache = structuredClone(FP_SEED);
 let fpDb = null;
