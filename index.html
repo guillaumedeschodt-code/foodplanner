@@ -290,7 +290,7 @@ async function importFoodPlannerBackup(){
   status.textContent='Sauvegarde restaurée. Rechargement…';location.reload();
  }catch(e){status.textContent='Import impossible : '+e.message;}
 }
-\nasync function initialiseFoodPlanner(){
+async function initialiseFoodPlanner(){
  try{
   fpDb=await openFoodPlannerDB();
   const rows=await dbGetAll(fpDb);
