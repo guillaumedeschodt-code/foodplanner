@@ -1,0 +1,1 @@
+Version propre basee sur FoodPlanner V3.4. Pas de couche IndexedDB ni de modification des fonctions de l’application. Déployer ces fichiers à la racine du dépôt GitHub Pages. Ne jamais téléverser la sauvegarde JSON personnelle dans GitHub.
