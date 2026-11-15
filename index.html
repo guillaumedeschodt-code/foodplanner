@@ -241,8 +241,8 @@ const fpCache = structuredClone(FP_SEED);
 let fpDb = null;
 function openFoodPlannerDB(){
  return new Promise((resolve,reject)=>{
-  const req=indexedDB.open('FoodPlannerDB',1);
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('appData'))db.createObjectStore('appData',{keyPath:'key'});};
+  const req=indexedDB.open('FoodPlannerDB',2);
+  req.onupgradeneeded=(event)=>{const db=req.result;if(!db.objectStoreNames.contains('appData'))db.createObjectStore('appData',{keyPath:'key'});};
   req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
  });
 }
