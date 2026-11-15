@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta name="theme-color" content="#287a59">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#176b4a">
+<title>FoodPlanner – Prototype</title>
+<style>
+:root{--green:#176b4a;--green2:#e7f4ed;--ink:#17251e;--muted:#6c7b72;--line:#e5ebe7;--bg:#f5f8f6;--white:#fff;--orange:#fff3df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);padding-bottom:84px}
+header{background:var(--green);color:white;padding:22px 18px 24px;border-radius:0 0 24px 24px}
+.top{display:flex;align-items:center;justify-content:space-between}.brand{font-size:22px;font-weight:800;letter-spacing:-.5px}.tag{font-size:11px;opacity:.85;letter-spacing:1px;margin-top:3px}
+main{max-width:680px;margin:auto;padding:16px}.greeting{font-size:14px;opacity:.9;margin-top:22px}.hero{font-size:25px;font-weight:750;margin-top:3px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.metric{background:rgba(255,255,255,.14);padding:12px;border-radius:14px}.metric strong{display:block;font-size:23px}.metric small{opacity:.85}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px}.section-head h2{font-size:17px;margin:0}.link{color:var(--green);font-weight:650;background:none;border:0;font-size:13px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{border:1px solid var(--line);background:white;border-radius:16px;padding:16px;text-align:left;min-height:112px;color:var(--ink)}.tile .ico{font-size:23px}.tile b{display:block;margin-top:8px}.tile small{color:var(--muted)}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}.muted{color:var(--muted);font-size:13px}.product{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 13px;margin:6px 0;cursor:pointer}.product b{display:block;font-size:15px}.product .product-meta{font-size:12px;color:var(--muted);margin-top:2px}.product .chevron{font-size:20px;color:var(--muted);padding:0 4px}.habit-days-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;margin-top:6px}.habit-days-grid label{display:flex;align-items:center;gap:8px;margin:0;padding:8px 4px;font-weight:500}.habit-days-grid input{width:19px;height:19px;flex:none}.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}.detail-overlay.open{display:flex}.detail-panel{background:#f7f9f8;width:100%;max-width:620px;max-height:85vh;overflow:auto;border-radius:22px 22px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom))}.detail-panel h2{margin:4px 0 8px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.detail-value{background:white;border:1px solid var(--line);border-radius:12px;padding:11px}.detail-value small{display:block;color:var(--muted);font-size:12px}.menu-slot{border-top:1px solid var(--line);padding:10px 0}.menu-slot h4{margin:0 0 5px}.macro-line{font-size:12px;color:var(--muted)}.pill{font-size:11px;background:var(--green2);color:var(--green);padding:5px 9px;border-radius:20px;white-space:nowrap}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 4px calc(9px + env(safe-area-inset-bottom));z-index:5}nav button{border:0;background:none;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 10px}nav button span{font-size:19px}nav button.active{color:var(--green);font-weight:750}
+.screen{display:none}.screen.active{display:block}
+button.primary{background:var(--green);color:white;border:0;border-radius:12px;padding:13px 16px;font-weight:700;width:100%;font-size:15px}
+button.secondary{background:var(--green2);color:var(--green);border:0;border-radius:10px;padding:10px 12px;font-weight:650}
+label{display:block;font-size:13px;font-weight:650;margin:12px 0 5px}input,select{width:100%;padding:12px;border:1px solid #d9e2dc;border-radius:10px;background:#fff;font:inherit;color:var(--ink)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.empty{text-align:center;padding:26px 12px;color:var(--muted)}.notice{background:var(--orange);border-radius:12px;padding:12px;font-size:12px;color:#77511d;margin-top:12px}
+h1{font-size:22px;margin:8px 0 4px}.back{border:0;background:none;color:var(--green);font-weight:700;padding:5px 0}
+.smallbtn{border:0;background:none;color:#a33;padding:7px}
+
+.availability-wrap{overflow-x:auto;margin-top:10px}
+.availability-grid{width:100%;border-collapse:collapse;min-width:290px;font-size:11px;text-align:center}
+.availability-grid th,.availability-grid td{padding:8px 3px;border-bottom:1px solid var(--line)}
+.availability-grid thead th{color:var(--muted);font-weight:650;white-space:nowrap}
+.availability-grid tbody th{text-align:left;font-size:12px}
+.availability-grid input{width:19px;height:19px;accent-color:var(--green);padding:0;margin:0}
+.availability-actions{display:flex;gap:8px;margin-top:12px}
+.availability-actions button{flex:1;font-size:12px;padding:9px 6px}
+.quick-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
+.quick-calendar .dayhead{font-size:11px;color:var(--muted);padding:5px 0}
+.quick-calendar button{min-width:0;padding:8px 2px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:13px}
+.quick-calendar button.selected{background:var(--green);color:white;border-color:var(--green)}
+.quick-calendar button.has-meal:after{content:'•';display:block;font-size:12px;line-height:8px}
+.quick-calendar button.today{outline:2px solid var(--green);outline-offset:1px}
+
+.planner-cal-head{display:flex;flex-direction:column;gap:10px;margin:18px 0 10px}
+.planner-cal-nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.planner-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.planner-calendar .weekday{font-size:12px;text-align:center;color:var(--muted);padding:5px 0}
+.planner-calendar button.date-cell{min-width:0;min-height:43px;padding:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:14px}
+.planner-calendar button.date-cell.chosen{background:var(--green);border-color:var(--green);color:white;font-weight:700}
+.planner-calendar button.date-cell.start-date{outline:2px solid #e5a33b;outline-offset:1px}
+.planner-cal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.planner-cal-actions .smallbtn{flex:1}
+
+/* Accents couleur discrets, sans modifier la mise en page ni les tailles */
+#plannerOutput .card{border-top:3px solid #2b8061}
+#plannerOutput .card> b:first-child{color:#176b4d}
+#plannerOutput .card h4{color:#176b4d}
+#plannerOutput .card .menu-slot{border-bottom:1px solid #e2eee7;padding:12px 0}
+#plannerOutput .card .menu-slot:last-child{border-bottom:0}
+#plannerOutput .card .macro-line{color:#397c63}
+#plannerOutput .card .menu-slot h4:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#55a783;margin:0 8px 2px 0}
+</style>
+</head>
+<body>
+<header>
+ <div class="top"><div><div class="brand">🥗 FoodPlanner</div><div class="tag">TON ASSISTANT NUTRITIONNEL</div></div><div style="font-size:25px">☘️</div></div>
+ <div class="greeting">Bonjour !</div><div class="hero">Construisons ta journée.</div>
+ <div class="metrics">
+  <div class="metric"><strong id="dashKcal">0 <small>kcal</small></strong><small>Produits enregistrés</small></div>
+  <div class="metric"><strong id="dashProtein">0 <small>g</small></strong><small>Protéines en bibliothèque</small></div>
+ </div>
+</header>
+<main>
+<section id="home" class="screen active">
+ <div class="section-head"><h2>Mes espaces</h2></div>
+ <div class="tiles">
+  <button class="tile" onclick="show('scanner')"><span class="ico">📷</span><b>Scanner un produit</b><small>Code-barres ou étiquette</small></button>
+  <button class="tile" onclick="show('library')"><span class="ico">🗂️</span><b>Ma bibliothèque</b><small>Mes aliments enregistrés</small></button>
+  <button class="tile" onclick="show('habits')"><span class="ico">☀️</span><b>Mes habitudes</b><small>Repas fixes</small></button>
+  <button class="tile" onclick="show('goals')"><span class="ico">🎯</span><b>Mes objectifs</b><small>Calories et protéines</small></button>
+ </div>
+ <div class="section-head"><h2>Derniers produits</h2><button class="link" onclick="show('library')">Tout voir →</button></div>
+ <div id="recent"></div>
+ <div class="notice">Prototype V1 : tes données sont enregistrées dans le stockage local de ce navigateur sur cet appareil.</div>
+</section>
+
+
+<section id="scanner" class="screen">
+ <button class="back" onclick="show('home')">← Retour</button>
+ <h1>Scanner un produit</h1><p class="muted">Choisis comment ajouter ton produit à FoodPlanner.</p>
+ <div class="card">
+  <div style="font-size:27px">▦</div><b>1. Scanner le code-barres</b>
+  <p class="muted">Recherche du produit dans une base alimentaire en ligne, si sa fiche existe.</p>
+  <label for="barcodePhoto" class="primary" style="display:block;text-align:center;cursor:pointer">📷 Photographier le code-barres</label>
+  <input id="barcodePhoto" type="file" accept="image/*" capture="environment">
+  <p class="muted" id="barcodePhotoStatus">La caméra arrière s'ouvrira pour prendre une photo du code-barres.</p>
+  <img id="barcodePreview" alt="Photo du code-barres" style="display:none;width:100%;margin-top:10px;border-radius:12px">
+  <label>Ou saisir le code-barres</label>
+  <div class="row"><input id="manualBarcode" inputmode="numeric" placeholder="Code EAN"><button class="secondary" type="button" onclick="lookupBarcode()">Rechercher</button></div>
+  <div id="barcodeResult"></div>
+ </div>
+ <div class="card">
+  <div style="font-size:27px">📸</div><b>2. Photographier le tableau nutritionnel</b>
+  <p class="muted">Prends une photo nette du tableau au dos de l'emballage. Vérifie ensuite les valeurs avant enregistrement.</p>
+  <label for="labelPhoto">Ouvrir l’appareil photo</label>
+  <input id="labelPhoto" type="file" accept="image/*" capture="environment">
+  <img id="labelPreview" alt="Aperçu de l'étiquette" style="display:none;width:100%;margin-top:10px;border-radius:12px">
+  <button class="primary" style="margin-top:12px" type="button" onclick="readNutritionLabel()">Lire automatiquement l'étiquette</button>
+  <p id="ocrStatus" class="muted"></p>
+  <div class="notice">La lecture automatique peut faire des erreurs : vérifie toujours les chiffres reconnus sur l'emballage avant de les enregistrer.</div>
+  <button class="secondary" style="margin-top:10px;width:100%" type="button" onclick="show('add')">Vérifier / compléter les valeurs</button>
+ </div>
+</section>
+
+<section id="library" class="screen">
+ <h1>Ma bibliothèque</h1><p class="muted">Tes produits et aliments de référence.</p>
+ <button class="primary" onclick="show('add')">＋ Ajouter un produit</button>
+ <label for="search">Rechercher un aliment</label><input id="search" placeholder="Ex. skyr, poulet, riz…" oninput="renderProducts()">
+ <div id="products"></div>
+</section>
+
+<section id="add" class="screen">
+ <button class="back" onclick="show('library')">← Retour à la bibliothèque</button>
+ <h1>Ajouter un produit</h1><p class="muted">Renseigne les valeurs indiquées sur l'emballage, généralement pour 100 g ou 100 ml.</p>
+ <form id="productForm">
+  <div id="ocrFormStatus" class="muted" aria-live="polite"></div>
+  <label>Nom du produit *</label><input id="pname" required placeholder="Ex. Skyr nature">
+  <div class="row"><div><label>Catégorie *</label><select id="pcat" required><option value="" selected disabled>Choisir une catégorie</option><option>Produits laitiers</option><option>Viandes et poissons</option><option>Féculents</option><option>Fruits et légumes</option><option>Snacks / protéines</option><option>Boissons</option><option>Plats préparés</option><option>Autre</option></select></div><div><label>Valeurs nutritionnelles pour</label><select id="unit" onchange="toggleCustomUnit()"><option value="100 g">100 g</option><option value="100 ml">100 ml</option><option value="1 unité">1 unité</option><option value="custom">Unité personnalisée…</option></select></div></div>
+  <div id="customUnitFields" class="row" style="display:none"><div><label>Nom de l'unité</label><input id="customUnitName" placeholder="Ex. 1 pot, 1 portion"></div><div><label>Quantité (facultatif)</label><input id="customUnitAmount" placeholder="Ex. 125 g"></div></div>
+  <label>Quantité totale du produit (facultatif)</label><input id="packageQuantity" placeholder="Ex. 400 g, 2 x 125 g, 1 litre">
+  <div class="row"><div><label>Calories (kcal) *</label><input id="kcal" type="number" min="0" step="1" required placeholder="Ex. 60"></div><div><label>Protéines (g) *</label><input id="protein" type="number" min="0" step="0.1" required placeholder="Ex. 10"></div></div>
+  <div class="row"><div><label>Glucides (g)</label><input id="carbs" type="number" min="0" step="0.1" placeholder="0"></div><div><label>Lipides (g)</label><input id="fat" type="number" min="0" step="0.1" placeholder="0"></div></div>
+  <label>Marque (facultatif)</label><input id="brand" placeholder="Ex. Carrefour">
+  <label>Code-barres (facultatif)</label><input id="barcode" inputmode="numeric" placeholder="Code EAN">
+  <div class="card" style="margin-top:16px;padding:12px">
+   <b>Planning de disponibilité</b>
+   <p class="muted">Coche les créneaux où ce produit est accessible.</p>
+   <div class="availability-wrap"><table class="availability-grid">
+    <thead><tr><th>Jour</th><th>Petit-déj.</th><th>Déjeuner</th><th>Collation</th><th>Dîner</th></tr></thead><tbody>
+    <tr><th>Lundi</th><td><input class="availability-slot" type="checkbox" data-day="Lundi" data-meal="Petit-déjeuner" aria-label="Lundi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Lundi" data-meal="Déjeuner" aria-label="Lundi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Lundi" data-meal="Collation" aria-label="Lundi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Lundi" data-meal="Dîner" aria-label="Lundi Dîner"></td></tr>
+    <tr><th>Mardi</th><td><input class="availability-slot" type="checkbox" data-day="Mardi" data-meal="Petit-déjeuner" aria-label="Mardi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Mardi" data-meal="Déjeuner" aria-label="Mardi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Mardi" data-meal="Collation" aria-label="Mardi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Mardi" data-meal="Dîner" aria-label="Mardi Dîner"></td></tr>
+    <tr><th>Mercredi</th><td><input class="availability-slot" type="checkbox" data-day="Mercredi" data-meal="Petit-déjeuner" aria-label="Mercredi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Mercredi" data-meal="Déjeuner" aria-label="Mercredi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Mercredi" data-meal="Collation" aria-label="Mercredi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Mercredi" data-meal="Dîner" aria-label="Mercredi Dîner"></td></tr>
+    <tr><th>Jeudi</th><td><input class="availability-slot" type="checkbox" data-day="Jeudi" data-meal="Petit-déjeuner" aria-label="Jeudi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Jeudi" data-meal="Déjeuner" aria-label="Jeudi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Jeudi" data-meal="Collation" aria-label="Jeudi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Jeudi" data-meal="Dîner" aria-label="Jeudi Dîner"></td></tr>
+    <tr><th>Vendredi</th><td><input class="availability-slot" type="checkbox" data-day="Vendredi" data-meal="Petit-déjeuner" aria-label="Vendredi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Vendredi" data-meal="Déjeuner" aria-label="Vendredi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Vendredi" data-meal="Collation" aria-label="Vendredi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Vendredi" data-meal="Dîner" aria-label="Vendredi Dîner"></td></tr>
+    <tr><th>Samedi</th><td><input class="availability-slot" type="checkbox" data-day="Samedi" data-meal="Petit-déjeuner" aria-label="Samedi Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Samedi" data-meal="Déjeuner" aria-label="Samedi Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Samedi" data-meal="Collation" aria-label="Samedi Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Samedi" data-meal="Dîner" aria-label="Samedi Dîner"></td></tr>
+    <tr><th>Dimanche</th><td><input class="availability-slot" type="checkbox" data-day="Dimanche" data-meal="Petit-déjeuner" aria-label="Dimanche Petit-déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Dimanche" data-meal="Déjeuner" aria-label="Dimanche Déjeuner"></td><td><input class="availability-slot" type="checkbox" data-day="Dimanche" data-meal="Collation" aria-label="Dimanche Collation"></td><td><input class="availability-slot" type="checkbox" data-day="Dimanche" data-meal="Dîner" aria-label="Dimanche Dîner"></td></tr>
+    </tbody></table></div>
+   <div class="availability-actions"><button type="button" class="secondary" onclick="setAvailability(true)">Tout cocher</button><button type="button" class="secondary" onclick="setAvailability(false)">Tout décocher</button></div>
+   <p class="muted">Aucun créneau n'est coché par défaut. Exemple : coche uniquement lundi et déjeuner.</p>
+  </div>
+  <button class="primary" style="margin-top:18px" type="submit">Enregistrer dans ma bibliothèque</button>
+ </form>
+ <div class="notice">Le scan photo/code-barres sera ajouté dans une prochaine étape. Pour l'instant, on valide la base de données et la saisie.</div>
+</section>
+
+<section id="planner" class="screen"><h1>Mes menus</h1><p class="muted">Proposition alimentaire pour un jour ou pour toute la semaine.</p>
+<div class="card"><b>Générer mes menus</b>
+<label>Date de départ</label><input id="plannerDate" type="date">
+<div class="planner-cal-head"><b>Dates à inclure</b><div class="planner-cal-nav"><button type="button" class="smallbtn" onclick="changePlannerMonth(-1)">‹</button><strong id="plannerMonthTitle"></strong><button type="button" class="smallbtn" onclick="changePlannerMonth(1)">›</button></div></div>
+<div id="plannerCalendar" class="planner-calendar"></div>
+<div class="planner-cal-actions"><button type="button" class="smallbtn" onclick="selectPlannerWeek()">Sélectionner cette semaine</button><button type="button" class="smallbtn" onclick="clearPlannerDates()">Tout décocher</button></div>
+<p class="muted" id="plannerSelectionHint">Sélectionne directement les dates dans le calendrier.</p>
+<p id="plannerTargetHint" class="muted"></p><button class="primary" onclick="generateMenus()">Générer mes menus</button></div><div id="plannerOutput"></div>
+<button class="secondary" style="width:100%;margin:14px 0" onclick="show('quickMealsScreen')">＋ Ajouter un repas hors bibliothèque</button></section>
+<section id="quickMealsScreen" class="screen">
+ <button class="back" type="button" onclick="show('planner')">← Retour à mes menus</button>
+<div class="card"><h2>Suivi ponctuel — repas hors bibliothèque</h2><p class="muted">Pour un repas chez des amis, au restaurant ou un plat dont tu ne connais pas la composition exacte. Saisis une estimation globale, sans créer de produit.</p>
+<label>Date consommée</label><input id="quickDate" type="date">
+<label>Repas</label><select id="quickMeal"><option>Petit-déjeuner</option><option>Déjeuner</option><option>Collation</option><option>Dîner</option><option>Autre</option></select>
+<label>Décris ton repas (aliments, quantités, cuisson, sauces…)</label><textarea id="quickDescription" rows="3" placeholder="Ex. 150 g de poulet grillé, 200 g de pommes de terre, une cuillère d’huile et une compote"></textarea>
+<button class="secondary" style="margin-top:10px" onclick="estimateQuickMeal()">Estimer calories et protéines</button>
+<div id="quickEstimate" class="muted" style="margin-top:8px">L’estimation sera calculée à partir des aliments reconnus et des quantités indiquées.</div>
+<div class="row"><div><label>Calories estimées (kcal)</label><input id="quickKcal" type="number" min="0" step="10" placeholder="Calcul automatique"></div><div><label>Protéines estimées (g)</label><input id="quickProtein" type="number" min="0" step="1" placeholder="Calcul automatique"></div></div>
+<p class="muted">Tu peux corriger les valeurs avant l’enregistrement. Pour un plat composé ou une portion imprécise, le résultat reste une approximation.</p>
+<button class="primary" style="margin-top:12px" onclick="addQuickMeal()">Ajouter au suivi du jour</button><div id="quickLog"></div></div></section>
+<section id="habits" class="screen">
+ <h1>Mes habitudes</h1>
+ <p class="muted">Retrouve ici tes repas habituels et les jours auxquels ils sont attribués.</p>
+ <button class="primary" style="margin:12px 0 16px" onclick="showHabitCreator()">＋ Créer une habitude</button>
+ <div id="habitList"></div>
+ <div id="habitCreatePanel" class="card" style="display:none">
+  <button class="back" type="button" onclick="hideHabitCreator()">← Retour à mes habitudes</button>
+  <h2>Créer une habitude</h2>
+  <label>Nom du repas</label><input id="habitName" placeholder="Ex. Petit-déjeuner classique">
+  <label>Type de repas</label>
+  <select id="habitMeal"><option>Petit-déjeuner</option><option>Déjeuner</option><option>Collation</option><option>Dîner</option></select>
+  <label>Jours concernés — sélection multiple</label>
+  <div class="habit-days-grid">
+   <label><input class="habit-day-check" type="checkbox" value="Lundi"> Lundi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Mardi"> Mardi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Mercredi"> Mercredi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Jeudi"> Jeudi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Vendredi"> Vendredi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Samedi"> Samedi</label>
+   <label><input class="habit-day-check" type="checkbox" value="Dimanche"> Dimanche</label>
+  </div>
+  <div class="row" style="margin-top:8px">
+   <button class="secondary" type="button" onclick="document.querySelectorAll('.habit-day-check').forEach(x=>x.checked=true)">Toute la semaine</button>
+   <button class="secondary" type="button" onclick="document.querySelectorAll('.habit-day-check').forEach(x=>x.checked=false)">Tout décocher</button>
+  </div>
+  <label>Composition — produits de ta bibliothèque</label>
+  <div id="habitProductPicker"></div>
+  <button class="primary" style="margin-top:14px" onclick="saveHabit()">Enregistrer ce repas</button>
+ </div>
+</section>
+
+<section id="goals" class="screen">
+<h1>Objectifs & dépense énergétique</h1><p class="muted">Estimation du métabolisme de base, de l'activité habituelle et des actions physiques quotidiennes.</p>
+<div class="card"><b>Mon profil</b>
+<div class="row"><div><label>Âge</label><input id="profileAge" type="number" value="37" min="15" max="100"></div><div><label>Sexe utilisé par la formule</label><select id="profileSex"><option value="male">Homme</option><option value="female">Femme</option></select></div></div>
+<div class="row"><div><label>Poids (kg)</label><input id="profileWeight" type="number" value="68.9" step="0.1"></div><div><label>Taille (cm)</label><input id="profileHeight" type="number" value="183"></div></div>
+<label>Activité habituelle hors sport</label><select id="profileActivity"><option value="1.2">Sédentaire</option><option value="1.3" selected>Peu actif</option><option value="1.45">Actif</option><option value="1.6">Très actif</option></select>
+<p class="muted">Actions prévues dans une journée type (minutes).</p>
+<div class="row"><div><label>Marche</label><input id="actionWalk" type="number" value="0" min="0"></div><div><label>Course à pied</label><input id="actionRun" type="number" value="0" min="0"></div></div>
+<div class="row"><div><label>Musculation / sport</label><input id="actionSport" type="number" value="0" min="0"></div><div><label>Jardinage / activité</label><input id="actionGarden" type="number" value="0" min="0"></div></div>
+<label>Objectif</label><select id="goalMode"><option value="maintain">Maintien</option><option value="-300" selected>Perte progressive (−300 kcal)</option><option value="-500">Perte soutenue (−500 kcal)</option><option value="250">Prise de poids (+250 kcal)</option></select>
+<label>Objectif protéines (g/jour)</label><input id="goalProtein" type="number" value="140">
+<button class="primary" style="margin-top:14px" onclick="saveEnergyProfile()">Calculer et enregistrer</button></div>
+<div id="energyResult" class="card"></div><div class="notice">Estimation indicative selon Mifflin-St Jeor. Les actions physiques sont des approximations ; ajuste selon l'évolution réelle du poids.</div>
+</section>
+</main>
+<div id="productDetailOverlay" class="detail-overlay" onclick="if(event.target===this)closeProductDetail()"><div class="detail-panel" id="productDetailContent"></div></div>
+<nav>
+ <button class="active" data-screen="home" onclick="show('home')"><span>⌂</span>Accueil</button>
+ <button data-screen="library" onclick="show('library')"><span>▤</span>Produits</button>
+ <button data-screen="planner" onclick="show('planner')"><span>▦</span>Menus</button>
+ <button data-screen="habits" onclick="show('habits')"><span>♡</span>Habitudes</button>
+ <button data-screen="goals" onclick="show('goals')"><span>◎</span>Objectifs</button>
+</nav>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+/* FoodPlanner durable storage layer: IndexedDB is the source of truth. */
+window.__fpReady=(async function(){
+ const DB_NAME='FoodPlannerDB', STORE='kv', PREFIX='fp_';
+ const req=indexedDB.open(DB_NAME,1);
+ req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE)};
+ const db=await new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+ const tx=(mode,fn)=>new Promise((resolve,reject)=>{const t=db.transaction(STORE,mode),s=t.objectStore(STORE);let r;try{r=fn(s)}catch(e){reject(e);return}t.oncomplete=()=>resolve(r?.result);t.onerror=()=>reject(t.error)});
+ const all=await tx('readonly',s=>s.getAll());
+ const keys=await tx('readonly',s=>s.getAllKeys());
+ const nativeGet=Storage.prototype.getItem,nativeSet=Storage.prototype.setItem,nativeRemove=Storage.prototype.removeItem;
+ // Hydrate legacy key-value cache before the existing synchronous FoodPlanner code runs.
+ for(let i=0;i<keys.length;i++){if(String(keys[i]).startsWith(PREFIX))nativeSet.call(localStorage,keys[i],all[i])}
+ const pending=new Map();
+ Storage.prototype.setItem=function(k,v){nativeSet.call(this,k,v);if(this===localStorage&&String(k).startsWith(PREFIX)){pending.set(k,String(v));const value=String(v);tx('readwrite',s=>s.put(value,k)).catch(console.error)}};
+ Storage.prototype.removeItem=function(k){nativeRemove.call(this,k);if(this===localStorage&&String(k).startsWith(PREFIX))tx('readwrite',s=>s.delete(k)).catch(console.error)};
+ window.foodPlannerDb={db,store:STORE,exportAll:async()=>{const ks=await tx('readonly',s=>s.getAllKeys()),vs=await tx('readonly',s=>s.getAll());return Object.fromEntries(ks.map((k,i)=>[k,vs[i]]))}};
+ document.documentElement.dataset.fpReady='true';
+ window.dispatchEvent(new Event('foodplanner-storage-ready'));
+})();
+</script>
+<script>
+window.__fpReady.then(()=>{
+const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+let products=get('fp_products',[]), habits=get('fp_habits',[]), goals=get('fp_goals',{kcal:1700,protein:140}), energyProfile=get('fp_energy_profile',{age:37,sex:'male',weight:68.9,height:183,activity:1.3,walk:0,run:0,sport:0,garden:0,mode:'-300',protein:140}), plannerMode='day', quickMeals=get('fp_quick_meals',[]);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));renderAll();window.scrollTo(0,0)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function productCard(p){return `<div class="card product" role="button" tabindex="0" onclick="openProductDetail('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProductDetail('${p.id}')}"><div style="min-width:0"><b>${esc(p.name)}</b><div class="product-meta">${esc(p.category)} · ${esc(p.unit)} · ${Math.round(Number(p.kcal))} kcal · ${Number(p.protein||0)} g prot.</div></div><span class="chevron">›</span></div>`}
+function openProductDetail(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ const slots=p.availability?.length?p.availability.map(a=>a.day+' · '+a.meal).join(', '):((p.days||[]).length?(p.days||[]).join(', '):'Disponibilité non définie');
+ document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><p class="muted">${esc(p.category)} · ${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
+ document.getElementById('productDetailOverlay').classList.add('open');
+}
+let editingProductId=null;
+function editProduct(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ editingProductId=id;
+ show('add');
+ document.getElementById('pname').value=p.name||'';
+ document.getElementById('pcat').value=p.category||'';
+ document.getElementById('unit').value=['100 g','100 ml','1 unité'].includes(p.unit)?p.unit:'custom';
+ if(document.getElementById('unit').value==='custom'){toggleCustomUnit();document.getElementById('customUnitName').value=(p.unit||'').split(' (')[0];document.getElementById('customUnitAmount').value=(p.unit||'').match(/\((.*?)\)/)?.[1]||''}
+ document.getElementById('packageQuantity').value=p.packageQuantity||'';
+ document.getElementById('kcal').value=Math.round(Number(p.kcal||0));document.getElementById('protein').value=p.protein||0;
+ document.getElementById('carbs').value=p.carbs||0;document.getElementById('fat').value=p.fat||0;
+ document.getElementById('brand').value=p.brand||'';document.getElementById('barcode').value=p.barcode||'';
+ document.querySelectorAll('.availability-slot').forEach(x=>x.checked=(p.availability||[]).some(a=>a.day===x.dataset.day&&a.meal===x.dataset.meal));
+ document.querySelector('#productForm button[type="submit"]').textContent='Enregistrer les modifications';
+ document.querySelector('#productForm').querySelector('button[type="submit"]').textContent='Enregistrer les modifications';
+ document.querySelector('#productForm').scrollIntoView({behavior:'smooth'});
+}
+function closeProductDetail(){document.getElementById('productDetailOverlay').classList.remove('open')}
+function setAvailability(checked){document.querySelectorAll(".availability-slot").forEach(x=>x.checked=checked)}
+function renderProducts(){let q=(document.getElementById('search')?.value||'').toLowerCase();let list=products.filter(p=>p.name.toLowerCase().includes(q));document.getElementById('products').innerHTML=list.length?list.map(productCard).join():'<div class="empty">Aucun produit pour le moment.<br>Ajoute ton premier aliment !</div>'}
+function renderHome(){document.getElementById('dashKcal').innerHTML=products.length+' <small>produits</small>';document.getElementById('dashProtein').innerHTML=products.reduce((s,p)=>s+Number(p.protein||0),0).toFixed(1)+' <small>g</small>';document.getElementById('recent').innerHTML=products.length?products.slice(-3).reverse().map(productCard).join():'<div class="empty">Ta bibliothèque est encore vide.</div>'}
+function showHabitCreator(){
+ document.getElementById('habitList').style.display='none';
+ document.querySelector('#habits > .primary').style.display='none';
+ document.getElementById('habitCreatePanel').style.display='block';
+ renderHabitPicker();
+ window.scrollTo(0,0);
+}
+function hideHabitCreator(){
+ document.getElementById('habitCreatePanel').style.display='none';
+ document.getElementById('habitList').style.display='block';
+ document.querySelector('#habits > .primary').style.display='block';
+ window.scrollTo(0,0);
+}
+function habitProductIsGramBased(p){const u=String(p.unit||'').toLowerCase();return u.includes('100 g')||u.includes('100 ml')}
+function habitQtyLabel(p){return habitProductIsGramBased(p)?'g':(p.unit||'unité')}
+function renderHabitPicker(){
+ const el=document.getElementById('habitProductPicker');if(!el)return;
+ el.innerHTML=products.length?products.map(p=>{
+  const gram=habitProductIsGramBased(p),step=gram?'5':'1',placeholder=gram?'g':'Qté';
+  return `<div class="habit-product-row" style="display:flex;align-items:center;gap:9px;padding:10px 2px;border-bottom:1px solid var(--line)">
+   <input class="habit-product-check" type="checkbox" value="${esc(p.id)}" style="width:20px;height:20px;flex:none">
+   <span style="flex:1;min-width:0;font-weight:500">${esc(p.name)} <small class="muted" style="display:block">${Math.round(Number(p.kcal))} kcal / ${esc(p.unit)}</small></span>
+   <label style="display:flex;align-items:center;gap:5px;font-size:13px;white-space:nowrap"><input class="habit-product-qty" data-product="${esc(p.id)}" type="number" min="0" step="${step}" placeholder="${placeholder}" style="width:76px;padding:8px"> <span class="muted">${gram?'g':esc(p.unit||'unité')}</span></label>
+  </div>`;
+ }).join(''):'<div class="empty">Ta bibliothèque est vide. Ajoute d’abord des produits dans l’onglet Produits.</div>';
+}
+function renderHabits(){
+ renderHabitPicker();
+ document.getElementById('habitList').innerHTML=habits.length?habits.map((h,i)=>{
+  const items=(h.items||[]).map(it=>{const p=products.find(x=>x.id===it.productId);return p?`${esc(p.name)}${it.quantity?` (${esc(it.quantity)} ${habitQtyLabel(p)})`:''}`:'Produit supprimé'}).join(', ');
+  return `<div class="card"><b>${esc(h.name)}</b><div class="muted">${esc(h.meal||'Repas')} · ${esc((h.days&&h.days.length?h.days:[h.day||h.days||'Jour non défini']).join(', '))}</div><div style="margin-top:7px">${items||'<span class="muted">Aucun produit sélectionné</span>'}</div><button class="smallbtn" style="margin-top:9px" onclick="removeHabit(${i})">Supprimer</button></div>`;
+ }).join():'<div class="empty">Aucun repas habituel enregistré.</div>';
+}
+
+
+async function readNutritionLabel(){
+ const file=document.getElementById('labelPhoto').files?.[0];
+ const status=document.getElementById('ocrStatus');
+ const formStatus=document.getElementById('ocrFormStatus');
+ if(!file){status.textContent="Prends d'abord une photo du tableau nutritionnel.";return}
+ if(!window.Tesseract){status.textContent="Le moteur OCR ne s'est pas chargé. Vérifie la connexion Internet puis recharge la page.";return}
+ status.textContent="Lecture en cours… garde cette page ouverte.";
+ formStatus.textContent="Analyse de l'étiquette en cours…";
+ try{
+  const result=await Tesseract.recognize(file,'fra',{
+   logger:m=>{if(m.status==='recognizing text'){const pct=Math.round((m.progress||0)*100);status.textContent='Lecture en cours : '+pct+' %';formStatus.textContent='Lecture de l’étiquette : '+pct+' %';}}
+  });
+  const raw=result.data.text||'';
+  const lines=raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/,/g,'.');
+  const valueAfter=(line)=>{
+    const matches=line.match(/(?:\d{1,4}(?:\.\d{1,2})?)/g);
+    return matches?Number(matches[matches.length-1]):null;
+  };
+  const findLine=(tests)=>{
+    for(const line of lines){const n=norm(line);if(tests.some(t=>n.includes(t))){const v=valueAfter(line);if(v!==null)return v;}}
+    return null;
+  };
+  let kcal=null;
+  for(const line of lines){
+    const n=norm(line);
+    if(n.includes('energie')||n.includes('energy')||/kcal/.test(n)){
+      const m=n.match(/(\d{2,4}(?:\.\d{1,2})?)\s*kcal/);
+      if(m){kcal=Number(m[1]);break;}
+    }
+  }
+  const protein=findLine(['proteines','protein']);
+  const carbs=findLine(['glucides','carbohydrate']);
+  const fat=findLine(['matieres grasses','lipides','fat']);
+  if(kcal!==null)document.getElementById('kcal').value=kcal;
+  if(protein!==null)document.getElementById('protein').value=protein;
+  if(carbs!==null)document.getElementById('carbs').value=carbs;
+  if(fat!==null)document.getElementById('fat').value=fat;
+  show('add');
+  const found=[kcal!==null,protein!==null,carbs!==null,fat!==null].filter(Boolean).length;
+  const message=found
+   ? found+' valeur(s) détectée(s). Vérifie chaque chiffre avec l’emballage et complète les champs manquants.'
+   : 'Aucune valeur reconnue avec certitude. Essaie une photo plus nette, cadrée sur le tableau, bien éclairée et prise de face.';
+  document.getElementById('ocrFormStatus').textContent=message;
+  document.getElementById('ocrStatus').textContent=message;
+ }catch(e){
+  status.textContent="La lecture a échoué. Essaie une photo plus nette et vérifie ta connexion.";
+  formStatus.textContent="Échec de la lecture automatique. Tu peux saisir les valeurs manuellement.";
+ }
+}
+
+
+document.getElementById('barcodePhoto').addEventListener('change', async e=>{
+ const file=e.target.files?.[0], status=document.getElementById('barcodePhotoStatus');
+ if(!file)return;
+ const preview=document.getElementById('barcodePreview');
+ const imageUrl=URL.createObjectURL(file);
+ preview.src=imageUrl;preview.style.display='block';
+ status.textContent="Photo chargée. Lecture du code-barres…";
+ try{
+  let code=null;
+  if('BarcodeDetector' in window){
+   try{
+    const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
+    const bitmap=await createImageBitmap(file);
+    const found=await detector.detect(bitmap);
+    if(found.length)code=found[0].rawValue;
+   }catch(err){}
+  }
+  if(!code && window.ZXing){
+   const image=new Image();
+   image.src=imageUrl;
+   await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject});
+   const reader=new ZXing.BrowserMultiFormatReader();
+   const result=await reader.decodeFromImageElement(image);
+   code=result.getText();
+  }
+  if(!code)throw new Error('No barcode detected');
+  document.getElementById('manualBarcode').value=code;
+  status.textContent="Code détecté : "+code+". Recherche du produit…";
+  await lookupBarcode();
+ }catch(err){
+  status.textContent="Photo bien chargée, mais code-barres non reconnu. Reprends une photo nette, bien de face, avec le code entier et sans reflet. Tu peux aussi saisir le numéro manuellement.";
+ }
+});
+async function toggleCustomUnit(){
+ const custom=document.getElementById('unit').value==='custom';
+ document.getElementById('customUnitFields').style.display=custom?'grid':'none';
+ document.getElementById('customUnitName').required=custom;
+}
+async function lookupBarcode(){
+ const code=document.getElementById('manualBarcode').value.trim(), out=document.getElementById('barcodeResult');
+ if(!code){out.innerHTML='<p class="muted">Saisis un code-barres.</p>';return}
+ out.innerHTML='<p class="muted">Recherche du produit…</p>';
+ try{
+  const r=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json');
+  const data=await r.json();
+  if(data.status!==1||!data.product){out.innerHTML='<p class="muted">Produit introuvable. Tu peux utiliser la photo du tableau nutritionnel.</p>';return}
+  const x=data.product, n=x.nutriments||{};
+  const name=x.product_name_fr||x.product_name||'Produit sans nom';
+  const kcal=n['energy-kcal_100g']??(n.energy_100g?Number(n.energy_100g)/4.184:0);
+  window.foundProduct={name,brand:x.brands||'',kcal:Number(kcal||0),protein:Number(n.proteins_100g||0),carbs:Number(n.carbohydrates_100g||0),fat:Number(n.fat_100g||0),barcode:code,quantity:x.quantity||''};
+  out.innerHTML=`<div class="card"><b>${esc(name)}</b><div class="muted">${esc(x.brands||'Marque non renseignée')}</div><div class="muted">${Math.round(Number(kcal||0))} kcal · ${n.proteins_100g||0} g protéines / 100 g</div><button class="primary" style="margin-top:10px" onclick="importFoundProduct()">Vérifier et compléter cette fiche</button></div>`;
+ }catch(e){out.innerHTML='<p class="muted">Recherche en ligne impossible. Vérifie ta connexion et réessaie.</p>'}
+}
+function importFoundProduct(){
+ const x=window.foundProduct;if(!x)return;
+ document.getElementById('pname').value=x.name;document.getElementById('brand').value=x.brand;document.getElementById('kcal').value=Math.round(x.kcal);document.getElementById('packageQuantity').value=x.quantity||'';document.getElementById('protein').value=x.protein;document.getElementById('carbs').value=x.carbs;document.getElementById('fat').value=x.fat;document.getElementById('barcode').value=x.barcode;
+ show('add');
+}
+document.getElementById('labelPhoto').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const img=document.getElementById('labelPreview');img.src=URL.createObjectURL(f);img.style.display='block'});
+
+// Estimateur local : valeurs nutritionnelles moyennes, ajustées aux quantités détectées.
+function estimateQuickMeal(){
+ const raw=document.getElementById('quickDescription').value.trim();
+ if(!raw)return alert('Décris d’abord ton repas.');
+ const text=raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const foods=[
+  {n:'blanc de poulet',k:120,p:23,d:['blanc de poulet','poulet']},
+  {n:'dinde',k:115,p:24,d:['dinde']},{n:'steak hache',k:210,p:26,d:['steak hache','boeuf']},
+  {n:'jambon',k:115,p:20,d:['jambon']},{n:'saumon',k:208,p:20,d:['saumon']},{n:'thon',k:130,p:29,d:['thon']},
+  {n:'oeuf',k:145,p:13,d:['oeuf','oeufs']},{n:'riz cuit',k:130,p:2.7,d:['riz']},{n:'pates cuites',k:150,p:5.5,d:['pates','spaghetti','tagliatelles']},
+  {n:'pommes de terre',k:85,p:2,d:['pommes de terre','pomme de terre','patates']},{n:'frites',k:310,p:3.5,d:['frites']},
+  {n:'pain',k:265,p:9,d:['pain','baguette']},{n:'fromage',k:350,p:23,d:['fromage','emmental','cheddar']},
+  {n:'pizza',k:260,p:11,d:['pizza']},{n:'salade verte',k:20,p:1.5,d:['salade']},{n:'tomate',k:18,p:0.9,d:['tomate']},
+  {n:'carotte',k:35,p:0.8,d:['carotte']},{n:'haricots verts',k:31,p:1.8,d:['haricots verts']},
+  {n:'courgette',k:17,p:1.2,d:['courgette']},{n:'compote',k:80,p:0.3,d:['compote']},{n:'yaourt',k:75,p:4,d:['yaourt']},
+  {n:'skyr',k:65,p:10,d:['skyr']},{n:'chocolat',k:550,p:7,d:['chocolat']},{n:'huile',k:900,p:0,d:['huile','beurre']},
+  {n:'mayonnaise',k:680,p:1,d:['mayonnaise']},{n:'avocat',k:160,p:2,d:['avocat']},{n:'creme fraiche',k:300,p:2.5,d:['creme fraiche']}
+ ];
+ let kcal=0,protein=0,found=[],remaining=text;
+ // Repas composés usuels : estimation par portion lorsqu'aucun ingrédient détaillé n'est identifié.
+ const dishes=[
+  {d:['burger frites','hamburger frites'],k:850,p:35,label:'burger-frites (portion)'},
+  {d:['kebab'],k:750,p:30,label:'kebab (portion)'},{d:['croque monsieur'],k:400,p:22,label:'croque-monsieur (unité)'},
+  {d:['quiche'],k:400,p:14,label:'quiche (part)'},{d:['lasagnes'],k:550,p:28,label:'lasagnes (portion)'},
+  {d:['cordon bleu'],k:300,p:20,label:'cordon bleu (unité)'},{d:['sandwich'],k:450,p:20,label:'sandwich (unité)'},
+  {d:['pizza'],k:780,p:32,label:'pizza (portion généreuse)'}
+ ];
+ const hasDetailed=foods.some(f=>f.d.some(w=>text.includes(w)));
+ if(!hasDetailed){
+  const dish=dishes.find(x=>x.d.some(w=>text.includes(w)));
+  if(dish){kcal=dish.k;protein=dish.p;found.push(dish.label)}
+ }
+ if(!found.length){
+  foods.forEach(f=>{
+   const word=f.d.find(w=>text.includes(w));
+   if(!word)return;
+   const idx=text.indexOf(word),before=text.slice(Math.max(0,idx-18),idx),after=text.slice(idx+word.length,idx+word.length+18);
+   const m=before.match(/(\d+(?:[.,]\d+)?)\s*(kg|g)\s*(?:de\s*)?$/)||after.match(/^\s*(?:de\s*)?(\d+(?:[.,]\d+)?)\s*(kg|g)/);
+   let grams=m?Number(m[1].replace(',','.'))*(m[2]==='kg'?1000:1):({ 'huile':10,'beurre':10,'oeuf':60,'oeufs':120,'compote':100,'yaourt':125,'skyr':150,'pizza':300,'pain':60,'chocolat':15 }[word]||150);
+   if(f.n==='oeuf'&&!m&&text.includes('oeufs'))grams=120;
+   kcal+=f.k*grams/100;protein+=f.p*grams/100;found.push(`${f.n} ${Math.round(grams)} g`);
+  });
+ }
+ if(!found.length){
+  const generic=dishes.find(x=>x.d.some(w=>text.includes(w)));
+  if(generic){kcal=generic.k;protein=generic.p;found.push(generic.label)}
+ }
+ if(!found.length){
+  document.getElementById('quickEstimate').textContent="Je ne reconnais pas suffisamment les aliments. Ajoute des quantités et des aliments simples (ex. poulet, riz, légumes), ou saisis toi-même une estimation.";
+  return;
+ }
+ // Marge prudente pour sauces, matières grasses et portions non précisées.
+ const margin=found.some(x=>x.includes('portion')||x.includes('unité')||x.includes('part'))?0.18:0.12;
+ kcal=Math.round(kcal);protein=Math.round(protein);
+ document.getElementById('quickKcal').value=Math.round(kcal/10)*10;
+ document.getElementById('quickProtein').value=protein;
+ document.getElementById('quickEstimate').textContent=`Estimation : ${kcal} kcal et ${protein} g de protéines. Éléments pris en compte : ${found.join(', ')}. Prévoir une marge d’environ ±${Math.round(margin*100)} % selon les portions, sauces et cuisson.`;
+}
+function addQuickMeal(){
+ const description=document.getElementById('quickDescription').value.trim(),date=document.getElementById('quickDate').value,meal=document.getElementById('quickMeal').value,kcal=Number(document.getElementById('quickKcal').value),protein=Number(document.getElementById('quickProtein').value||0);
+ if(!description||!date||!kcal)return alert('Indique une description, une date et une estimation des calories.');
+ quickMeals.push({id:Date.now().toString(),date,meal,description,kcal,protein});
+ put('fp_quick_meals',quickMeals);renderQuickCalendar();document.getElementById('quickDescription').value='';document.getElementById('quickKcal').value='';document.getElementById('quickProtein').value='';renderQuickLog();
+}
+document.addEventListener('change',e=>{if(e.target.id==='quickDate'){quickCalendarMonth=new Date(e.target.value+'T12:00:00');renderQuickCalendar();renderQuickLog()}});
+let quickCalendarMonth=new Date();
+function shiftQuickCalendar(delta){quickCalendarMonth.setMonth(quickCalendarMonth.getMonth()+delta);renderQuickCalendar()}
+function selectQuickCalendarDate(date){const input=document.getElementById('quickDate');input.value=date;renderQuickCalendar();renderQuickLog()}
+function renderQuickCalendar(){
+ const el=document.getElementById('quickCalendar');if(!el)return;
+ const y=quickCalendarMonth.getFullYear(),m=quickCalendarMonth.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0);
+ document.getElementById('quickCalendarTitle').textContent=first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+ const selected=document.getElementById('quickDate')?.value||localDateString(new Date()),today=localDateString(new Date());
+ const datesWithMeals=new Set(quickMeals.map(x=>x.date));
+ let html=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(x=>`<div class="dayhead">${x}</div>`).join();
+ const offset=(first.getDay()+6)%7;
+ for(let i=0;i<offset;i++)html+='<div></div>';
+ for(let d=1;d<=last.getDate();d++){
+  const date=localDateString(new Date(y,m,d)),classes=[date===selected?'selected':'',date===today?'today':'',datesWithMeals.has(date)?'has-meal':''].filter(Boolean).join(' ');
+  html+=`<button type="button" class="${classes}" aria-label="Sélectionner le ${d}" aria-pressed="${date===selected}" onclick="selectQuickCalendarDate('${date}')">${d}</button>`;
+ }
+ el.innerHTML=`<div class="quick-calendar">${html}</div><p class="muted" style="font-size:11px">• Repas déjà enregistrés · contour vert : aujourd’hui</p>`;
+}
+function renderQuickLog(){
+ const el=document.getElementById('quickLog');if(!el)return;
+ const date=document.getElementById('quickDate')?.value||localDateString(new Date()),items=quickMeals.filter(x=>x.date===date);
+ const kcal=items.reduce((s,x)=>s+x.kcal,0),protein=items.reduce((s,x)=>s+x.protein,0);
+ el.innerHTML=`<div class="card"><b>Suivi du ${date.split('-').reverse().join('/')}</b><div class="macro-line">${kcal} kcal estimées · ${protein} g protéines</div>${items.map(x=>`<div class="menu-slot"><b>${esc(x.meal)}</b><div>${esc(x.description)}</div><div class="macro-line">${x.kcal} kcal · ${x.protein} g protéines</div><button class="smallbtn" onclick="removeQuickMeal('${x.id}')">Retirer</button></div>`).join('')||'<p class="muted">Aucun repas ponctuel enregistré pour cette date.</p>'}</div>`;
+}
+function removeQuickMeal(id){quickMeals=quickMeals.filter(x=>x.id!==id);put('fp_quick_meals',quickMeals);renderQuickCalendar();renderQuickLog()}
+function renderAll(){renderHome();renderProducts();renderHabits();renderEnergyProfile();const d=new Date();d.setDate(d.getDate()+1);const el=document.getElementById('plannerDate');if(el&&!el.value)el.value=localDateString(d);const qd=document.getElementById('quickDate');if(qd&&!qd.value)qd.value=localDateString(new Date());renderQuickCalendar();renderQuickLog();updatePlannerHint()}
+function localDateString(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function renderEnergyProfile(){const p=energyProfile;for(const [id,k] of [['profileAge','age'],['profileSex','sex'],['profileWeight','weight'],['profileHeight','height'],['profileActivity','activity'],['actionWalk','walk'],['actionRun','run'],['actionSport','sport'],['actionGarden','garden'],['goalMode','mode'],['goalProtein','protein']]){const e=document.getElementById(id);if(e)e.value=p[k]}calculateEnergy()}
+function calculateEnergy(){const p={age:+profileAge.value,sex:profileSex.value,weight:+profileWeight.value,height:+profileHeight.value,activity:+profileActivity.value,walk:+actionWalk.value||0,run:+actionRun.value||0,sport:+actionSport.value||0,garden:+actionGarden.value||0,mode:goalMode.value,protein:+goalProtein.value||0};if(!p.age||!p.weight||!p.height)return null;
+const bmr=10*p.weight+6.25*p.height-5*p.age+(p.sex==='male'?5:-161),base=bmr*p.activity;
+const extra=((3.3-1)*p.walk+(8.3-1)*p.run+(5.5-1)*p.sport+(4-1)*p.garden)*p.weight/60;
+const tdee=Math.round(base+Math.max(0,extra)),target=Math.max(1200,Math.round(tdee+(p.mode==='maintain'?0:Number(p.mode))));
+const el=document.getElementById('energyResult');if(el)el.innerHTML=`<b>Estimation quotidienne</b><div class="detail-grid"><div class="detail-value"><small>Métabolisme de base</small><b>${Math.round(bmr)} kcal</b></div><div class="detail-value"><small>Dépense totale</small><b>${tdee} kcal</b></div><div class="detail-value"><small>Objectif alimentaire</small><b>${target} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${p.protein} g</b></div></div><p class="muted">Activité habituelle : ${Math.round(base)} kcal · Actions : ${Math.round(extra)} kcal</p>`;
+return {profile:p,target,protein:p.protein,tdee}}
+function saveEnergyProfile(){const r=calculateEnergy();if(!r)return alert('Renseigne âge, poids et taille.');energyProfile=r.profile;goals={kcal:r.target,protein:r.protein};put('fp_energy_profile',energyProfile);put('fp_goals',goals);alert('Profil et objectifs enregistrés.');updatePlannerHint()}
+let plannerMonth=new Date(),plannerSelectedDates=new Set();
+function isoDateLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function changePlannerMonth(delta){plannerMonth=new Date(plannerMonth.getFullYear(),plannerMonth.getMonth()+delta,1);renderPlannerCalendar()}
+function togglePlannerDate(date){if(plannerSelectedDates.has(date))plannerSelectedDates.delete(date);else plannerSelectedDates.add(date);const input=document.getElementById('plannerDate');if(!input.value||!plannerSelectedDates.has(input.value))input.value=[...plannerSelectedDates].sort()[0]||date;renderPlannerCalendar()}
+function clearPlannerDates(){plannerSelectedDates.clear();renderPlannerCalendar()}
+function selectPlannerWeek(){const raw=plannerDate.value||isoDateLocal(new Date());const [y,m,d]=raw.split('-').map(Number),start=new Date(y,m-1,d);plannerSelectedDates.clear();for(let i=0;i<7;i++){const x=new Date(start);x.setDate(start.getDate()+i);plannerSelectedDates.add(isoDateLocal(x))}plannerMonth=new Date(start.getFullYear(),start.getMonth(),1);renderPlannerCalendar()}
+function renderPlannerCalendar(){
+ const el=document.getElementById('plannerCalendar');if(!el)return;
+ const y=plannerMonth.getFullYear(),m=plannerMonth.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0);
+ document.getElementById('plannerMonthTitle').textContent=first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+ const headers=['L','M','M','J','V','S','D'];let html=headers.map(x=>`<div class="weekday">${x}</div>`).join('');
+ for(let i=0;i<(first.getDay()+6)%7;i++)html+='<div></div>';
+ const start=plannerDate.value;
+ for(let d=1;d<=last.getDate();d++){const date=isoDateLocal(new Date(y,m,d)),classes=['date-cell',plannerSelectedDates.has(date)?'chosen':'',date===start?'start-date':''].filter(Boolean).join(' ');html+=`<button type="button" class="${classes}" aria-pressed="${plannerSelectedDates.has(date)}" onclick="togglePlannerDate('${date}')">${d}</button>`}
+ el.innerHTML=html;
+ document.getElementById('plannerSelectionHint').textContent=`${plannerSelectedDates.size} date(s) sélectionnée(s). Touche une date pour la cocher ou la décocher.`;
+}
+function setPlannerMode(m){plannerMode=m;updatePlannerHint()}
+function updatePlannerHint(){const e=document.getElementById('plannerTargetHint');if(e){const r=calculateEnergy();e.textContent=`Objectif : ${r?.target||goals.kcal} kcal et ${r?.protein||goals.protein} g de protéines par jour. Les habitudes programmées sont conservées.`}}
+function weekdayName(d){return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][d.getDay()]}
+function habitFor(day,meal){return habits.filter(h=>(h.days||[]).includes(day)&&h.meal===meal)}
+function mealProducts(day,meal){return products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal))}
+function macroFor(p,n){const u=String(p.unit||'100 g').toLowerCase(),f=(u.includes('100 g')||u.includes('100 ml'))?n/100:n;return {kcal:+p.kcal*f,protein:+p.protein*f}}
+function buildMeal(day,meal,target){const fixed=habitFor(day,meal);if(fixed.length){const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const n=+(it.quantity||((String(p.unit).includes('100 g')||String(p.unit).includes('100 ml'))?100:1));lines.push({p,n,macro:macroFor(p,n)})}}));return {meal,lines,fixed:true}}
+const list=mealProducts(day,meal);if(!list.length)return {meal,lines:[],missing:true};const chosen=[...list].sort((a,b)=>(+b.protein/Math.max(1,+b.kcal))-(+a.protein/Math.max(1,+a.kcal))).slice(0,Math.min(3,list.length));
+const lines=chosen.map(p=>{const u=String(p.unit||''),per=+p.kcal||1,is100=u.includes('100 g')||u.includes('100 ml'),n=is100?Math.max(25,Math.round(target/chosen.length/per*100/5)*5):Math.max(1,Math.round(target/chosen.length/per));return {p,n,macro:macroFor(p,n)}});return {meal,lines}}
+function generateMenus(){
+ const dates=[...plannerSelectedDates].sort();
+ if(!dates.length)return alert('Coche au moins une date dans le calendrier.');
+ const chosen=dates;
+ const defs=[['Petit-déjeuner',.25],['Déjeuner',.35],['Collation',.15],['Dîner',.25]];let html='';
+ for(const raw of chosen){const [y,m,d]=raw.split('-').map(Number),date=new Date(y,m-1,d),day=weekdayName(date);html+=`<div class="card"><b>${day} ${raw.split('-').reverse().join('/')}</b>`;
+ for(const [meal,share] of defs){const r=buildMeal(day,meal,goals.kcal*share),k=r.lines.reduce((s,x)=>s+x.macro.kcal,0),pr=r.lines.reduce((s,x)=>s+x.macro.protein,0);html+=`<div class="menu-slot"><h4>${meal}${r.fixed?' · Habitude conservée':''}</h4>${r.lines.length?r.lines.map(x=>`<div>${esc(x.p.name)} — ${Math.round(x.n)} ${esc(x.p.unit)} <span class="macro-line">(${Math.round(x.macro.kcal)} kcal)</span></div>`).join(''):'<div class="muted">Aucun produit disponible sur ce créneau. Vérifie les disponibilités.</div>'}<div class="macro-line">Total : ${Math.round(k)} kcal · ${pr.toFixed(1)} g protéines</div></div>`}html+='</div>'}
+ plannerOutput.innerHTML=html;
+}
+
+document.getElementById('productForm').addEventListener('submit',e=>{e.preventDefault();const updatedProduct={id:editingProductId||Date.now().toString(),name:pname.value.trim(),category:pcat.value,unit:unit.value==='custom'?(customUnitName.value.trim()+(customUnitAmount.value.trim()?' ('+customUnitAmount.value.trim()+')':'')):unit.value,packageQuantity:packageQuantity.value.trim(),kcal:Math.round(Number(kcal.value)),protein:Number(protein.value),carbs:Number(carbs.value||0),fat:Number(fat.value||0),brand:brand.value,barcode:barcode.value,availability:[...document.querySelectorAll('.availability-slot:checked')].map(x=>({day:x.dataset.day,meal:x.dataset.meal})),days:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.day))],meals:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.meal))]};if(editingProductId){products=products.map(p=>p.id===editingProductId?updatedProduct:p);editingProductId=null}else{products.push(updatedProduct)}put('fp_products',products);e.target.reset();document.querySelectorAll('.availability-slot').forEach(x=>x.checked=false);document.querySelector('#productForm button[type=submit]').textContent='Enregistrer dans ma bibliothèque';show('library')});
+function removeProduct(id){if(confirm('Supprimer ce produit ?')){products=products.filter(p=>p.id!==id);put('fp_products',products);renderAll()}}
+function saveHabit(){
+ const name=document.getElementById('habitName').value.trim();
+ const meal=document.getElementById('habitMeal').value;
+ const days=[...document.querySelectorAll('.habit-day-check:checked')].map(x=>x.value);
+ const selected=[...document.querySelectorAll('.habit-product-check:checked')];
+ if(!name)return alert('Donne un nom à ce repas.');
+ if(!days.length)return alert('Sélectionne au moins un jour de la semaine.');
+ if(!selected.length)return alert('Sélectionne au moins un produit dans ta bibliothèque.');
+ const items=selected.map(c=>{const p=products.find(x=>x.id===c.value);const input=document.querySelector(`.habit-product-qty[data-product="${c.value}"]`);const fallback=habitProductIsGramBased(p)?100:1;return {productId:c.value,quantity:input?.value!==''?Number(input.value):fallback,quantityMode:habitProductIsGramBased(p)?'g':'unit'};});
+ habits.push({id:Date.now().toString(),name,meal,days,items});
+ put('fp_habits',habits);
+ document.getElementById('habitName').value='';
+ document.querySelectorAll('.habit-day-check,.habit-product-check').forEach(x=>x.checked=false);
+ document.querySelectorAll('.habit-product-qty').forEach(x=>x.value='');
+ renderHabits();
+ hideHabitCreator();
+}
+function removeHabit(i){habits.splice(i,1);put('fp_habits',habits);renderHabits()}
+renderAll();
+if(!plannerDate.value)plannerDate.value=isoDateLocal(new Date());
+plannerSelectedDates.add(plannerDate.value);
+plannerMonth=new Date(plannerDate.value+'T12:00:00');
+renderPlannerCalendar();
+plannerDate.addEventListener('change',()=>{if(plannerDate.value){plannerMonth=new Date(plannerDate.value+'T12:00:00');plannerSelectedDates.add(plannerDate.value);renderPlannerCalendar()}});
+});
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));
+}
+</script>
+</body></html>
