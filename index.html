@@ -199,10 +199,26 @@ const FP_SEED = {"fp_goals":{"kcal":1849,"protein":140},"fp_habits":[],"fp_produ
 const fpCache = structuredClone(FP_SEED);
 let fpDb = null;
 function openFoodPlannerDB(){
+ // Répare aussi les bases déjà créées avec une ancienne version incomplète.
+ // On ouvre d'abord sans imposer de version afin de lire la version réellement installée.
  return new Promise((resolve,reject)=>{
-  const req=indexedDB.open('FoodPlannerDB',1);
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('appData'))db.createObjectStore('appData',{keyPath:'key'});};
-  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+  const name='FoodPlannerDB';
+  const first=indexedDB.open(name);
+  first.onerror=()=>reject(first.error);
+  first.onsuccess=()=>{
+   const db=first.result;
+   if(db.objectStoreNames.contains('appData')){db.onversionchange=()=>db.close();resolve(db);return;}
+   const nextVersion=db.version+1;
+   db.close();
+   const upgrade=indexedDB.open(name,nextVersion);
+   upgrade.onupgradeneeded=()=>{
+    const upgraded=upgrade.result;
+    if(!upgraded.objectStoreNames.contains('appData'))upgraded.createObjectStore('appData',{keyPath:'key'});
+   };
+   upgrade.onsuccess=()=>{upgrade.result.onversionchange=()=>upgrade.result.close();resolve(upgrade.result);};
+   upgrade.onerror=()=>reject(upgrade.error);
+   upgrade.onblocked=()=>reject(new Error('Mise à jour de la base bloquée : ferme les autres onglets FoodPlanner puis recharge.'));
+  };
  });
 }
 function dbGetAll(db){
