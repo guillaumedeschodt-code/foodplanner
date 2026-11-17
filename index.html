@@ -138,8 +138,8 @@ h1{font-size:22px;margin:8px 0 4px}.back{border:0;background:none;color:var(--gr
 <section id="habits" class="screen">
  <h1>Mes habitudes</h1>
  <p class="muted">Retrouve ici tes repas habituels et les jours auxquels ils sont attribués.</p>
- <div class="row" id="habitActions"><button class="primary" onclick="showHabitCreator()">＋ Habitude alimentaire</button><button class="secondary" onclick="document.getElementById('sportHabitEditor').style.display='block';document.getElementById('sportHabitEditor').scrollIntoView()">＋ Habitude sportive</button></div>
- <div id="habitList"></div><div id="sportHabitList"></div><div id="sportHabitEditor" class="card" style="display:none"><h3>Créer une habitude sportive</h3><label>Nom de l'activité</label><input id="sportHabitName" placeholder="Ex. Renforcement musculaire"><div class="row"><div><label>Durée (minutes)</label><input id="sportHabitMinutes" type="number" min="1" value="30"></div><div><label>Calories estimées</label><input id="sportHabitKcal" type="number" min="0" value="150"></div></div><label>Jours concernés</label><div class="habit-days-grid"><label><input class="sport-day" type="checkbox" value="Lundi"> Lundi</label><label><input class="sport-day" type="checkbox" value="Mardi"> Mardi</label><label><input class="sport-day" type="checkbox" value="Mercredi"> Mercredi</label><label><input class="sport-day" type="checkbox" value="Jeudi"> Jeudi</label><label><input class="sport-day" type="checkbox" value="Vendredi"> Vendredi</label><label><input class="sport-day" type="checkbox" value="Samedi"> Samedi</label><label><input class="sport-day" type="checkbox" value="Dimanche"> Dimanche</label></div><button class="primary" style="margin-top:10px" onclick="saveSportHabit()">Ajouter cette habitude sportive</button></div>
+ <div class="row" id="habitActions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="primary" onclick="showHabitCreator()">＋ Habitude alimentaire</button><button class="primary" onclick="showSportHabitCreator()">＋ Habitude sportive</button></div>
+ <div class="row habit-lists" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start"><div><h3>Habitudes alimentaires</h3><div id="habitList"></div></div><div><h3>Habitudes sportives</h3><div id="sportHabitList"></div></div></div><div id="sportHabitEditor" class="card" style="display:none"><button class="back" type="button" onclick="hideHabitCreator()">← Retour à mes habitudes</button><h3>Créer une habitude sportive</h3><label>Nom de l'activité</label><input id="sportHabitName" placeholder="Ex. Renforcement musculaire"><div class="row"><div><label>Durée (minutes)</label><input id="sportHabitMinutes" type="number" min="1" value="30"></div><div><label>Calories estimées</label><input id="sportHabitKcal" type="number" min="0" value="150"></div></div><label>Jours concernés</label><div class="habit-days-grid"><label><input class="sport-day" type="checkbox" value="Lundi"> Lundi</label><label><input class="sport-day" type="checkbox" value="Mardi"> Mardi</label><label><input class="sport-day" type="checkbox" value="Mercredi"> Mercredi</label><label><input class="sport-day" type="checkbox" value="Jeudi"> Jeudi</label><label><input class="sport-day" type="checkbox" value="Vendredi"> Vendredi</label><label><input class="sport-day" type="checkbox" value="Samedi"> Samedi</label><label><input class="sport-day" type="checkbox" value="Dimanche"> Dimanche</label></div><button class="primary" style="margin-top:10px" onclick="saveSportHabit()">Ajouter cette habitude sportive</button></div>
  <div id="habitCreatePanel" class="card" style="display:none">
   <button class="back" type="button" onclick="hideHabitCreator()">← Retour à mes habitudes</button>
   <h2>Créer une habitude</h2>
@@ -282,6 +282,12 @@ async function initialiseFoodPlanner(){
   products=get('fp_products',[]);habits=get('fp_habits',[]);goals=get('fp_goals',{kcal:1700,protein:140});
   energyProfile=get('fp_energy_profile',{age:37,sex:'male',weight:68.9,height:183,activity:1.3,walk:0,run:0,sport:0,garden:0,mode:'-300',protein:140});
   quickMeals=get('fp_quick_meals',[]);
+  // Recharger les données de profil APRÈS la lecture IndexedDB.
+  // Les variables globales sont créées avant la fin de l'ouverture asynchrone ;
+  // sans cette étape, le prénom retombait sur sa valeur vide à chaque lancement.
+  sportHabits=get('fp_sport_habits',[]);
+  dayLogs=get('fp_day_logs',{});
+  personalProfile=get('fp_personal_profile',{firstName:'',startWeight:energyProfile.weight||68.9,targetWeight:0});
   renderAll();
   const today=isoDateLocal(new Date());
   plannerSelectedDates=new Set([today]);plannerMonth=new Date(today+'T12:00:00');renderPlannerCalendar();
@@ -330,12 +336,16 @@ function showHabitCreator(){
  if(list) list.style.display='none';
  if(sportList) sportList.style.display='none';
  if(sportEditor) sportEditor.style.display='none';
+ document.querySelector('.habit-lists').style.display='none';
  document.getElementById('habitCreatePanel').style.display='block';
  renderHabitPicker();
  window.scrollTo(0,0);
 }
+function showSportHabitCreator(){document.getElementById('habitActions').style.display='none';document.querySelector('.habit-lists').style.display='none';document.getElementById('habitCreatePanel').style.display='none';document.getElementById('sportHabitEditor').style.display='block';window.scrollTo(0,0)}
 function hideHabitCreator(){
  document.getElementById('habitCreatePanel').style.display='none';
+ const sportEditor=document.getElementById('sportHabitEditor');if(sportEditor)sportEditor.style.display='none';
+ const lists=document.querySelector('.habit-lists');if(lists)lists.style.display='grid';
  const actions=document.getElementById('habitActions');
  const list=document.getElementById('habitList');
  const sportList=document.getElementById('sportHabitList');
@@ -653,7 +663,7 @@ function removeHabit(i){habits.splice(i,1);put('fp_habits',habits);renderHabits(
 
 // V3.6 — programme nutrition/sport, calendrier et profil, stockage IndexedDB existant.
 let sportHabits=get('fp_sport_habits',[]),dayLogs=get('fp_day_logs',{}),personalProfile=get('fp_personal_profile',{firstName:'',startWeight:energyProfile.weight||68.9,targetWeight:0});
-function savePersonalProfile(){personalProfile={firstName:document.getElementById('profileFirstName').value.trim(),startWeight:Number(document.getElementById('profileStartWeight').value||energyProfile.weight),};goals={...goals,kcal:Number(profileGoalKcal.value)||0,protein:Number(profileGoalProtein.value)||0};put('fp_personal_profile',personalProfile);put('fp_goals',goals);renderHomeV36();updatePlannerHint();alert('Profil et objectifs enregistrés.')}
+async function savePersonalProfile(){personalProfile={...personalProfile,firstName:document.getElementById('profileFirstName').value.trim(),startWeight:Number(document.getElementById('profileStartWeight').value||energyProfile.weight)};goals={...goals,kcal:Number(profileGoalKcal.value)||0,protein:Number(profileGoalProtein.value)||0};put('fp_personal_profile',personalProfile);put('fp_goals',goals);try{if(fpDb)await Promise.all([dbPut(fpDb,'fp_personal_profile',personalProfile),dbPut(fpDb,'fp_goals',goals)]);renderHomeV36();updatePlannerHint();alert('Profil enregistré et conservé sur cet appareil.')}catch(err){console.error(err);alert('Erreur lors de l’enregistrement du profil. Réessaie.')}}
 function saveSportHabit(){const name=sportHabitName.value.trim(),minutes=Number(sportHabitMinutes.value),kcal=Number(sportHabitKcal.value),days=[...document.querySelectorAll('.sport-day:checked')].map(x=>x.value);if(!name||!minutes||!days.length)return alert('Renseigne l’activité, sa durée et au moins un jour.');sportHabits.push({id:Date.now().toString(),name,minutes,kcal,days});put('fp_sport_habits',sportHabits);sportHabitName.value='';document.querySelectorAll('.sport-day').forEach(x=>x.checked=false);renderSportHabits();}
 function renderSportHabits(){const el=document.getElementById('sportHabitList');if(!el)return;el.innerHTML=sportHabits.length?sportHabits.map((h,i)=>`<div class="card"><b>${esc(h.name)}</b><div class="muted">${h.minutes} min · ${h.kcal} kcal estimées · ${h.days.join(', ')}</div><button class="smallbtn" onclick="removeSportHabit(${i})">Supprimer</button></div>`).join(''):'<p class="muted">Aucune habitude sportive enregistrée.</p>'}
 function removeSportHabit(i){sportHabits.splice(i,1);put('fp_sport_habits',sportHabits);renderSportHabits()}
@@ -668,14 +678,16 @@ function addActualSport(){const name=logSportName.value.trim(),kcal=Number(logSp
 function removeActualSport(i){actualSportsDraft.splice(i,1);renderActualSports()}
 function calendarForecast(date){
  const x=dayLogs[date]||{},tdee=Number(calculateEnergy()?.tdee||2150);
- const intake=Number(x.plannedKcal??x.kcal??0)+Number(x.extraKcal||0);
- const sport=x.actualSports?.length?x.actualSports.reduce((n,a)=>n+Number(a.kcal||0),0):Number(x.plannedSportKcal??x.sportKcal??0);
+ const dayDeficit=(a)=>{const intake=a.planned?Number(a.plannedKcal||0)+Number(a.extraKcal||0):Number(a.kcal||a.extraKcal||0);const sport=a.actualSports?.length?a.actualSports.reduce((n,z)=>n+Number(z.kcal||0),0):Number(a.planned?(a.plannedSportKcal||0):(a.sportKcal||0));return tdee+sport-intake};
  const hasDayData=!!(x.planned||x.kcal||x.extraKcal||x.actualSports?.length||x.sportKcal);
- const deficit=hasDayData?Math.round(tdee+sport-intake):null;
- const weighIns=Object.values(dayLogs).filter(a=>a.date<=date&&Number(a.weight)>0).sort((a,b)=>a.date.localeCompare(b.date));
- const latest=weighIns.at(-1);let projected=null;
- if(latest){projected=Number(latest.weight);if(latest.date<date){const cumulative=Object.keys(dayLogs).filter(d=>d>latest.date&&d<=date).reduce((sum,d)=>{const a=dayLogs[d];if(!(a.planned||a.kcal||a.extraKcal||a.actualSports?.length||a.sportKcal))return sum;const consumed=Number(a.plannedKcal??a.kcal??0)+Number(a.extraKcal||0);const burned=a.actualSports?.length?a.actualSports.reduce((n,z)=>n+Number(z.kcal||0),0):Number(a.plannedSportKcal??a.sportKcal??0);return sum+tdee+burned-consumed;},0);projected-=cumulative/7700;}}
- return {deficit,projected,measured:latest?.date===date,hasDayData};
+ const deficit=hasDayData?Math.round(dayDeficit(x)):null;
+ const weighIns=Object.values(dayLogs).filter(a=>a.date&&a.date<=date&&Number(a.weight)>0).sort((a,b)=>a.date.localeCompare(b.date));
+ const latest=weighIns.length?weighIns[weighIns.length-1]:null;
+ let projected=null,baselineDate=null;
+ if(latest){projected=Number(latest.weight);baselineDate=latest.date;}
+ else if(Number(personalProfile?.startWeight||energyProfile?.weight)>0){projected=Number(personalProfile?.startWeight||energyProfile.weight);baselineDate='';}
+ if(projected!==null){const cumulative=Object.keys(dayLogs).filter(d=>(!baselineDate||d>baselineDate)&&d<=date).sort().reduce((sum,d)=>sum+dayDeficit(dayLogs[d]||{}),0);projected-=cumulative/7700;}
+ return {deficit,projected,measured:!!latest&&latest.date===date,hasDayData};
 }
 function renderSelectedProgram(){const el=document.getElementById('calendarSelectedProgram');if(!el)return;const x=dayLogs[calendarSelectedDate]||{},f=calendarForecast(calendarSelectedDate);let html=`<div class="calendar-forecast"><div class="forecast-item"><small>Déficit prévisionnel</small><strong>${f.deficit===null?'—':(f.deficit>0?'+':'')+f.deficit+' kcal'}</strong></div><div class="forecast-item"><small>${f.measured?'Dernier poids mesuré':'Poids prévisionnel'}</small><strong>${f.projected===null?'À renseigner':f.projected.toFixed(2)+' kg'}</strong></div></div>`;if(x.planned){html+=`<p><b>Prévision alimentaire :</b> ${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g de protéines</p>`;html+=(x.plannedMealsData||[]).map(m=>`<div class="menu-slot"><b>${esc(m.meal)}</b><div>${(m.items||[]).map(i=>`${esc(i.name)} · ${i.quantity} ${esc(i.unit)}`).join('<br>')}</div></div>`).join('');if(x.plannedSport?.length)html+=`<p><b>Sport prévu :</b> ${x.plannedSport.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`}else html+='<p class="muted">Aucun programme alimentaire validé pour cette date.</p>';const sports=x.actualSports||[];if(sports.length)html+=`<p><b>Sport réalisé :</b> ${sports.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;else if(x.sportKcal)html+=`<p><b>Sport réalisé :</b> ${x.sportKcal} kcal</p>`;if(x.extraKcal||x.extraProtein)html+=`<p><b>Ajouts hors programme :</b> ${x.extraKcal||0} kcal · ${x.extraProtein||0} g protéines</p>`;if(x.weight)html+=`<p><b>Poids mesuré :</b> ${x.weight} kg</p>`;el.innerHTML=html}
 function saveDayLog(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date dans le calendrier.');const prev=dayLogs[date]||{},sports=actualSportsDraft.map(a=>({...a})),sportKcal=sports.reduce((n,a)=>n+Number(a.kcal||0),0),measuredWeight=Number(logWeight.value||0)||null;dayLogs[date]={...prev,date,extraKcal:Number(logKcal.value||0),extraProtein:Number(logProtein.value||0),kcal:Number(prev.plannedKcal||prev.kcal||0)+Number(logKcal.value||0),protein:Number(prev.plannedProtein||prev.protein||0)+Number(logProtein.value||0),sportKcal:sportKcal,actualSports:sports,weight:measuredWeight};if(measuredWeight){personalProfile={...personalProfile,startWeight:measuredWeight};energyProfile={...energyProfile,weight:measuredWeight};put('fp_personal_profile',personalProfile);put('fp_energy_profile',energyProfile);const pw=document.getElementById('profileStartWeight');if(pw)pw.value=measuredWeight;}put('fp_day_logs',dayLogs);renderMonthCalendar();renderSelectedProgram();renderCalendarLogs();renderHomeV36();alert('Journée enregistrée.')}
