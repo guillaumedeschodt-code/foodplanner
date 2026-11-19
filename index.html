@@ -116,7 +116,7 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
 
 <section id="library" class="screen">
  <h1>Mes produits</h1><p class="muted">Bibliothèque, scan et ajout de nouveaux aliments.</p>
- <div class="card"><button class="primary product-action" type="button" onclick="document.getElementById('barcodePhoto').click()">📷 Scanner un produit</button><button class="primary product-action" type="button" onclick="toggleBarcodeEntry()">⌨️ Saisir un code barre</button><div id="barcodeEntry" style="display:none"><label>Code-barres</label><div class="row"><input id="manualBarcode" inputmode="numeric" placeholder="Code EAN"><button class="primary" onclick="lookupBarcode()">Rechercher</button></div></div><button class="primary product-action" type="button" onclick="show('add')">Ajouter un produit</button><input id="barcodePhoto" type="file" accept="image/*" capture="environment" style="display:none"><p id="barcodePhotoStatus" class="muted" aria-live="polite"></p><div id="barcodeResult"></div></div><h2>Liste des produits</h2>
+ <div class="card"><button class="primary product-action" type="button" onclick="document.getElementById('barcodePhoto').click()">📷 Scanner un produit</button><button class="primary product-action" type="button" onclick="toggleBarcodeEntry()">⌨️ Saisir un code barre</button><div id="barcodeEntry" style="display:none"><label>Code-barres</label><div class="row"><input id="manualBarcode" inputmode="numeric" placeholder="Code EAN"><button class="primary" onclick="lookupBarcode()">Rechercher</button></div></div><button class="primary product-action" type="button" onclick="startNewProduct()">Ajouter un produit</button><input id="barcodePhoto" type="file" accept="image/*" capture="environment" style="display:none"><p id="barcodePhotoStatus" class="muted" aria-live="polite"></p><div id="barcodeResult"></div></div><h2>Liste des produits</h2>
  <label for="search">Rechercher un aliment</label><input id="search" placeholder="Ex. skyr, poulet, riz…" oninput="renderProducts()">
  <div id="products"></div>
 </section>
@@ -127,7 +127,7 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
  <form id="productForm">
   <label>Nom du produit *</label><input id="pname" required placeholder="Ex. Skyr nature">
   <div class="row"><div><label>Valeurs nutritionnelles pour</label><select id="unit" onchange="toggleCustomUnit()"><option value="100 g">100 g</option><option value="100 ml">100 ml</option><option value="1 unité">1 unité</option><option value="custom">Unité personnalisée…</option></select></div></div>
-  <div id="customUnitFields" class="row" style="display:none"><div><label>Nom de l'unité</label><input id="customUnitName" placeholder="Ex. 1 pot, 1 portion"></div><div><label>Quantité (facultatif)</label><input id="customUnitAmount" placeholder="Ex. 125 g"></div></div>
+  <div id="customUnitFields" class="row" style="display:none"><div><label>Nom de l'unité</label><input id="customUnitName" placeholder="Ex. pot, portion"></div><div><label>Grammage de l'unité (g)</label><input id="customUnitAmount" type="number" min="1" step="1" placeholder="Ex. 250"></div></div>
   <label>Quantité totale du produit (facultatif)</label><input id="packageQuantity" placeholder="Ex. 400 g, 2 x 125 g, 1 litre">
   <div class="row"><div><label>Calories (kcal) *</label><input id="kcal" type="number" min="0" step="1" required placeholder="Ex. 60"></div><div><label>Protéines (g) *</label><input id="protein" type="number" min="0" step="0.1" required placeholder="Ex. 10"></div></div>
   <div class="row"><div><label>Glucides (g)</label><input id="carbs" type="number" min="0" step="0.1" placeholder="0"></div><div><label>Lipides (g)</label><input id="fat" type="number" min="0" step="0.1" placeholder="0"></div></div>
@@ -208,6 +208,7 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
 <div class="card calendar-entry-card"><h3>Compléter cette journée</h3><p class="muted" id="calendarEditDate"></p>
 <div class="sport-add"><b>Sport réalisé</b><div class="compact-sport-row"><input id="logSportName" placeholder="Nom du sport"><input id="logSportKcal" type="number" min="0" placeholder="Calories brûlées"></div><button class="primary" style="margin-top:8px" onclick="addActualSport()">Ajouter et valider le sport</button><div id="actualSportList"></div></div>
 <div class="sport-add" style="margin-top:14px"><b>Calories consommées en plus</b><div class="compact-fields"><div><label>Calories supplémentaires</label><input id="logKcal" type="number" min="0" placeholder="kcal"></div><div><label>Protéines associées (g)</label><input id="logProtein" type="number" min="0" step="0.1" placeholder="g"></div></div><button class="primary" style="margin-top:8px" onclick="saveExtraIntake()">Valider les ajouts</button><button class="secondary" style="margin-top:8px" onclick="setMaintenanceDay()">Positionner la journée en maintenance calorique</button></div>
+<div class="sport-add" style="margin-top:14px"><b>Ajuster manuellement le déficit</b><p class="muted">Tu peux remplacer le déficit calculé par la valeur que tu souhaites retenir. Utilise une valeur négative en cas de surplus.</p><div><label>Déficit / surplus retenu (kcal)</label><input id="logManualDeficit" type="number" step="1" placeholder="Ex. 500 ou -250"></div><button class="primary" style="margin-top:8px" onclick="saveManualDeficit()">Valider le déficit</button><button class="secondary" style="margin-top:8px" onclick="clearManualDeficit()">Revenir au calcul automatique</button></div>
 <div class="sport-add" style="margin-top:14px"><b>Poids mesuré</b><div><input id="logWeight" type="number" step="0.1" min="0" max="300" placeholder="Poids en kg"><small id="weightDateHint" class="muted">Disponible uniquement jusqu’à aujourd’hui.</small></div><button class="primary" style="margin-top:8px" onclick="saveMeasuredWeight()">Valider le poids</button></div></div>
 </section>
 <section id="profile" class="screen"><h1>Mon profil</h1>
@@ -344,40 +345,58 @@ function productCard(p){return `<div class="card product" role="button" tabindex
 function openProductDetail(id){
  const p=products.find(x=>x.id===id);if(!p)return;
  const slots=p.availability?.length?p.availability.map(a=>a.day+' · '+a.meal).join(', '):((p.days||[]).length?(p.days||[]).join(', '):'Disponibilité non définie');
- document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><p class="muted">${esc(p.category)} · ${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le poids d'une portion ou d'une unité. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertGrams">Grammage d'une unité (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div><button class="primary" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button></div><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
+ document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><p class="muted">${esc(p.category)} · ${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le nom et le poids d'une portion. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertUnitName">Nom de l'unité</label><input id="convertUnitName" placeholder="Ex. pot, portion" value="${esc(p.unitName||'')}"></div><div><label for="convertGrams">Grammage (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div></div><button class="primary" style="margin-top:10px" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
  document.getElementById('productDetailOverlay').classList.add('open');
 }
 let editingProductId=null;
+function startNewProduct(){
+ editingProductId=null;
+ const form=document.getElementById('productForm');form.reset();
+ document.querySelectorAll('.availability-slot').forEach(x=>x.checked=false);
+ document.getElementById('customUnitFields').style.display='none';
+ document.getElementById('customUnitName').required=false;
+ document.querySelector('#productForm button[type=submit]').textContent='Enregistrer dans ma bibliothèque';
+ document.querySelector('#add h1').textContent='Ajouter un produit';
+ closeProductDetail();show('add');
+}
 function editProduct(id){
  const p=products.find(x=>x.id===id);if(!p)return;
+ closeProductDetail();
  editingProductId=id;
  show('add');
+ document.querySelector('#add h1').textContent='Modifier un produit';
  document.getElementById('pname').value=p.name||'';
  
  document.getElementById('unit').value=['100 g','100 ml','1 unité'].includes(p.unit)?p.unit:'custom';
- if(document.getElementById('unit').value==='custom'){toggleCustomUnit();document.getElementById('customUnitName').value=(p.unit||'').split(' (')[0];document.getElementById('customUnitAmount').value=(p.unit||'').match(/\((.*?)\)/)?.[1]||''}
+ if(document.getElementById('unit').value==='custom'){toggleCustomUnit();document.getElementById('customUnitName').value=p.unitName||String(p.unit||'').replace(/^1\s*/,'').split(' (')[0];document.getElementById('customUnitAmount').value=p.unitGrams||''}
  document.getElementById('packageQuantity').value=p.packageQuantity||'';
- document.getElementById('kcal').value=Math.round(Number(p.kcal||0));document.getElementById('protein').value=p.protein||0;
- document.getElementById('carbs').value=p.carbs||0;document.getElementById('fat').value=p.fat||0;
+ const editBase=p.conversionBase||p;
+ document.getElementById('kcal').value=Math.round(Number(editBase.kcal||0));document.getElementById('protein').value=editBase.protein||0;
+ document.getElementById('carbs').value=editBase.carbs||0;document.getElementById('fat').value=editBase.fat||0;
  document.getElementById('brand').value=p.brand||'';document.getElementById('barcode').value=p.barcode||'';
  document.querySelectorAll('.availability-slot').forEach(x=>x.checked=(p.availability||[]).some(a=>a.day===x.dataset.day&&a.meal===x.dataset.meal));
  document.querySelector('#productForm button[type="submit"]').textContent='Enregistrer les modifications';
  document.querySelector('#productForm').querySelector('button[type="submit"]').textContent='Enregistrer les modifications';
- document.querySelector('#productForm').scrollIntoView({behavior:'smooth'});
+ window.scrollTo({top:0,behavior:'smooth'});
 }
 function convertProductToUnit(id){
  const p=products.find(x=>x.id===id);if(!p)return;
  const grams=Number(document.getElementById('convertGrams')?.value||0);
+ const unitName=(document.getElementById('convertUnitName')?.value||'').trim();
  const help=document.getElementById('convertHelp');
+ if(!unitName){if(help)help.textContent='Indique un nom pour cette unité.';return;}
  if(!Number.isFinite(grams)||grams<=0){if(help)help.textContent='Indique un grammage supérieur à zéro.';return;}
  const isPer100=String(p.unit||'').toLowerCase()==='100 g';
  const base=p.conversionBase|| (isPer100?{kcal:Number(p.kcal)||0,protein:Number(p.protein)||0,carbs:Number(p.carbs)||0,fat:Number(p.fat)||0}:null);
  if(!base){if(help)help.textContent='La conversion nécessite des valeurs nutritionnelles de référence pour 100 g.';return;}
  const factor=grams/100;
- const updated={...p,conversionBase:{...base},unitGrams:grams,unit:`1 unité (${grams} g)`,kcal:Math.round(base.kcal*factor*10)/10,protein:Math.round(base.protein*factor*10)/10,carbs:Math.round(base.carbs*factor*10)/10,fat:Math.round(base.fat*factor*10)/10};
+ const updated={...p,conversionBase:{...base},unitGrams:grams,unitName,unit:`1 ${unitName} (${grams} g)`,kcal:Math.round(base.kcal*factor*10)/10,protein:Math.round(base.protein*factor*10)/10,carbs:Math.round(base.carbs*factor*10)/10,fat:Math.round(base.fat*factor*10)/10};
  products=products.map(x=>x.id===id?updated:x);put('fp_products',products);
- renderProducts();openProductDetail(id);
- }
+ closeProductDetail();
+ document.getElementById('barcodeResult').innerHTML='';
+ renderProducts();show('library');
+ alert(`Conversion enregistrée : 1 ${unitName} (${grams} g). La fiche du produit a été mise à jour.`);
+}
 function closeProductDetail(){document.getElementById('productDetailOverlay').classList.remove('open')}
 function setAvailability(checked){document.querySelectorAll(".availability-slot").forEach(x=>x.checked=checked)}
 function renderProducts(){let q=(document.getElementById('search')?.value||'').toLowerCase();let list=products.filter(p=>p.name.toLowerCase().includes(q));document.getElementById('products').innerHTML=list.length?list.map(productCard).join():'<div class="empty">Aucun produit pour le moment.<br>Ajoute ton premier aliment !</div>'}
@@ -612,28 +631,74 @@ function setPlannerMode(m){plannerMode=m;updatePlannerHint()}
 function updatePlannerHint(){/* Les objectifs restent utilisés pour le calcul, sans rappel dans l'onglet Programme. */}
 function weekdayName(d){return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][d.getDay()]}
 function habitFor(day,meal){return habits.filter(h=>(h.days||[]).includes(day)&&h.meal===meal)}
-function mealProducts(day,meal){return products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal))}
-function macroFor(p,n){const u=String(p.unit||'100 g').toLowerCase(),f=(u.includes('100 g')||u.includes('100 ml'))?n/100:n;return {kcal:+p.kcal*f,protein:+p.protein*f}}
-function formatMealProductLine(item){const p=item.p||item;const n=Number(item.n??item.quantity??0);const unit=String(p.unit||'100 g');let quantity;if(unit==='100 g')quantity=`${Math.round(n)} g`;else if(unit==='100 ml')quantity=`${Math.round(n)} ml`;else if(unit==='1 unité')quantity=`${Number.isInteger(n)?n:n.toFixed(1)} ${n>1?'unités':'unité'}`;else quantity=`${Number.isInteger(n)?n:n.toFixed(1)} ${unit.split(' (')[0]}`;return `${quantity} de ${esc(p.name)}`;}
-function buildMeal(day,meal,target){const fixed=habitFor(day,meal);if(fixed.length){const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const n=+(it.quantity||((String(p.unit).includes('100 g')||String(p.unit).includes('100 ml'))?100:1));lines.push({p,n,macro:macroFor(p,n)})}}));return {meal,lines,fixed:true}}
-const list=mealProducts(day,meal);if(!list.length)return {meal,lines:[],missing:true};const chosen=[...list].sort((a,b)=>(+b.protein/Math.max(1,+b.kcal))-(+a.protein/Math.max(1,+a.kcal))).slice(0,Math.min(3,list.length));
-const lines=chosen.map(p=>{const u=String(p.unit||''),per=+p.kcal||1,is100=u.includes('100 g')||u.includes('100 ml'),n=is100?Math.max(25,Math.round(target/chosen.length/per*100/5)*5):Math.max(1,Math.round(target/chosen.length/per));return {p,n,macro:macroFor(p,n)}});return {meal,lines}}
+function productUnitInfo(p){
+ const u=String(p.unit||'100 g').trim();
+ if(/100\s*g/i.test(u))return {kind:'gram',label:'g',grams:100};
+ if(/100\s*ml/i.test(u))return {kind:'ml',label:'ml',grams:100};
+ const m=u.match(/^\s*1\s+(.+?)\s*\((\d+(?:[.,]\d+)?)\s*g\)\s*$/i);
+ if(m)return {kind:'piece',label:m[1].trim(),grams:Number(m[2].replace(',','.'))};
+ if(/^1\s*unité$/i.test(u))return {kind:'piece',label:'unité',grams:0};
+ return {kind:'piece',label:u.replace(/^1\s*/,''),grams:0};
+}
+function macroFor(p,n){const info=productUnitInfo(p),f=(info.kind==='gram'||info.kind==='ml')?n/100:n;return {kcal:(+p.kcal||0)*f,protein:(+p.protein||0)*f,carbs:(+p.carbs||0)*f,fat:(+p.fat||0)*f}}
+function formatMealProductLine(item){const p=item.p||item,n=Number(item.n??item.quantity??0),info=productUnitInfo(p);let quantity='';
+ if(info.kind==='gram')quantity=`${Math.round(n)} g`;
+ else if(info.kind==='ml')quantity=`${Math.round(n)} ml`;
+ else {const count=Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');quantity=`${count} ${info.label}${info.grams?` (${Math.round(n*info.grams)} g)`:''}`;}
+ return `${quantity} de ${esc(p.name)}`;
+}
+function classifyFood(p){const n=String(p.name||'').toLowerCase(),k=Number(p.kcal)||0,pr=Number(p.protein)||0;
+ if(/poulet|dinde|boeuf|bœuf|jambon|thon|saumon|poisson|cabillaud|œuf|oeuf|crevette|steak|viande|tofu|tempeh|protéin|protein|skyr|fromage blanc|yaourt|petit suisse/.test(n)||pr>=15)return 'protein';
+ if(/riz|pâte|pates|pâtes|semoule|quinoa|pain|flocon|avoine|pomme de terre|patate|céréale|cereale|wrap|tortilla|lentille|pois chiche|haricot rouge/.test(n))return 'carb';
+ if(/légume|legume|salade|tomate|carotte|courgette|brocoli|haricot vert|épinard|epinard|poireau|concombre|champignon|ratatouille/.test(n))return 'veg';
+ if(/pomme|banane|orange|fruit|fraise|myrtille|kiwi|poire|compote|raisin|clémentine|clementine/.test(n))return 'fruit';
+ if(/huile|beurre|amande|noix|cacahuète|cacahuete|avocat|purée d'oléagineux|miel|chocolat/.test(n))return 'fat';
+ if(/lait|skyr|yaourt|fromage blanc|fromage|dessert/.test(n))return 'dairy';
+ if(pr>0&&pr/k>0.07)return 'protein';
+ return 'other';
+}
+function productPortion(p,role,calorieShare,proteinShare){const info=productUnitInfo(p),k=Math.max(0.1,Number(p.kcal)||0),pr=Math.max(0,Number(p.protein)||0);
+ const grams=role==='protein'?130:role==='carb'?100:role==='veg'?150:role==='fruit'?120:role==='dairy'?150:role==='fat'?8:80;
+ if(info.kind==='gram'||info.kind==='ml')return Math.max(role==='fat'?5:30,Math.round(grams/5)*5);
+ let count=1;if(info.grams)count=Math.max(0.25,Math.min(3,Math.round((grams/info.grams)*4)/4));
+ else if(role==='protein'&&pr<8)count=Math.max(1,Math.min(2,Math.round(12/Math.max(1,pr))));
+ else if(role==='fat')count=0.5;
+ return count;
+}
+function mealProducts(day,meal){const available=products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal));return available.length?available:products;}
+function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){const fixed=habitFor(day,meal);if(fixed.length){const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const n=+(it.quantity||((productUnitInfo(p).kind==='gram'||productUnitInfo(p).kind==='ml')?100:1));lines.push({p,n,macro:macroFor(p,n)})}}));return {meal,lines,fixed:true}}
+ const list=mealProducts(day,meal);if(!list.length)return {meal,lines:[],missing:true};
+ const scored=list.map((p,i)=>({p,role:classifyFood(p),i}));
+ const wants=meal==='Petit-déjeuner'?['dairy','protein','carb','fruit']:meal==='Déjeuner'?['protein','carb','veg','fat']:meal==='Collation'?['dairy','fruit','protein']:['protein','veg','carb','fat'];
+ const lines=[],used=new Set();
+ wants.forEach((role,idx)=>{let candidates=scored.filter(x=>x.role===role&&!used.has(x.p.id));if(!candidates.length&&role==='dairy')candidates=scored.filter(x=>x.role==='protein'&&!used.has(x.p.id));if(!candidates.length&&role==='protein')candidates=scored.filter(x=>x.role==='dairy'&&!used.has(x.p.id));if(!candidates.length)return;
+ candidates.sort((a,b)=>{const pa=productPortion(a.p,role),pb=productPortion(b.p,role),ma=macroFor(a.p,pa),mb=macroFor(b.p,pb);const targetDensity=role==='protein'?1:0;return (mb.protein*targetDensity+mb.kcal/100)-(ma.protein*targetDensity+ma.kcal/100)});
+ const pick=candidates[(rotation+idx)%Math.min(candidates.length,Math.max(1,Math.min(3,candidates.length)))];used.add(pick.p.id);const n=productPortion(pick.p,role);lines.push({p:pick.p,n,macro:macroFor(pick.p,n),role});
+ });
+ // Ajuste prudent des portions protéinées pour rapprocher le repas de son objectif en protéines.
+ let proteinNow=lines.reduce((a,x)=>a+x.macro.protein,0),proteinLine=lines.find(x=>x.role==='protein');
+ if(proteinLine&&proteinNow<targetProtein*.72){const info=productUnitInfo(proteinLine.p),factor=(targetProtein*.72)/Math.max(1,proteinNow);proteinLine.n=info.kind==='gram'?Math.min(240,Math.round(proteinLine.n*factor/5)*5):Math.min(3,Math.round(proteinLine.n*factor*4)/4);proteinLine.macro=macroFor(proteinLine.p,proteinLine.n)}
+ // Réduit les portions de féculents si le repas dépasse nettement son enveloppe calorique.
+ let kcalNow=lines.reduce((a,x)=>a+x.macro.kcal,0),carbLine=lines.find(x=>x.role==='carb');
+ if(carbLine&&kcalNow>targetKcal*1.18){const info=productUnitInfo(carbLine.p);carbLine.n=info.kind==='gram'?Math.max(40,Math.round(carbLine.n*.75/5)*5):Math.max(.5,carbLine.n*.75);carbLine.macro=macroFor(carbLine.p,carbLine.n)}
+ return {meal,lines};
+}
 let generatedDraft={};
 function generateMenus(){
- const dates=[...plannerSelectedDates].sort().filter(x=>!dayLogs[x]?.planned);
- if(!dates.length)return alert('Sélectionne au moins une date non validée.');
- const defs=[['Petit-déjeuner',.25],['Déjeuner',.35],['Collation',.15],['Dîner',.25]];
+ const dates=[...plannerSelectedDates].sort().filter(x=>!dayLogs[x]?.planned);if(!dates.length)return alert('Sélectionne au moins une date non validée.');
+ const kcalGoal=Number(goals?.kcal||energyProfile?.target||0),proteinGoal=Number(goals?.protein||energyProfile?.protein||0);
+ if(!kcalGoal||!proteinGoal)return alert('Renseigne et enregistre tes objectifs de calories et de protéines dans Profil avant de générer un programme.');
+ const defs=[['Petit-déjeuner',.25,.22],['Déjeuner',.35,.32],['Collation',.15,.18],['Dîner',.25,.28]];
  generatedDraft={};let html='';
- for(const raw of dates){const date=new Date(raw+'T12:00:00'),day=weekdayName(date),sports=sportsForDate(raw);
- const meals=defs.map(([meal,share])=>buildMeal(day,meal,(goals.kcal||0)*share));
- const kcal=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.kcal,0),0);
- const protein=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.protein,0),0);
- const sportKcal=sports.reduce((a,x)=>a+Number(x.kcal||0),0);
+ dates.forEach((raw,dayIndex)=>{const date=new Date(raw+'T12:00:00'),day=weekdayName(date),sports=sportsForDate(raw);
+ const meals=defs.map(([meal,share,proteinShare],mealIndex)=>buildMeal(day,meal,kcalGoal*share,proteinGoal*proteinShare,dayIndex+mealIndex));
+ const kcal=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.kcal,0),0),protein=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.protein,0),0),sportKcal=sports.reduce((a,x)=>a+Number(x.kcal||0),0);
  generatedDraft[raw]={date:raw,meals,sports,kcal,protein,sportKcal};
+ const kcalPct=Math.round(kcal/kcalGoal*100),proteinPct=Math.round(protein/proteinGoal*100);
  html+=`<div class="card"><h3>${esc(day)} ${raw.split('-').reverse().join('/')}</h3>`;
- for(const m of meals){html+=`<div class="menu-slot"><b>${esc(m.meal)} :</b>${m.lines.length?m.lines.map(l=>`<div>${formatMealProductLine(l)}</div>`).join(''):'<p class="muted">Aucun produit disponible pour ce repas.</p>'}</div>`}
- html+=`<p><b>Sport :</b> ${sports.length?sports.map(x=>esc(x.name)+' · '+x.minutes+' min · '+x.kcal+' kcal').join(' / '):'Aucun prévu'}</p><p><b>Prévision :</b> ${Math.round(kcal)} kcal · ${protein.toFixed(1)} g protéines · sport ${sportKcal} kcal</p><button class="primary" onclick="validateDraftDay('${raw}')">Valider cette date</button></div>`;
- }
+ meals.forEach(m=>{html+=`<div class="menu-slot"><b>${esc(m.meal)} :</b>${m.lines.length?m.lines.map(l=>`<div>${formatMealProductLine(l)}</div>`).join(''):'<p class="muted">Aucun produit dans ta bibliothèque pour composer ce repas.</p>'}</div>`});
+ html+=`<p><b>Bilan nutritionnel :</b> ${Math.round(kcal)} / ${kcalGoal} kcal (${kcalPct} %) · ${protein.toFixed(1)} / ${proteinGoal} g protéines (${proteinPct} %)</p><p class="muted">${kcalPct>=90&&kcalPct<=110?'Objectif calorique proche.':kcalPct<90?'Apport calorique inférieur à l’objectif.':'Apport calorique supérieur à l’objectif.'} ${proteinPct>=90?'Objectif protéines proche ou atteint.':'Protéines à renforcer avec les produits disponibles.'}</p><p><b>Sport :</b> ${sports.length?sports.map(x=>esc(x.name)+' · '+x.minutes+' min · '+x.kcal+' kcal').join(' / '):'Aucun prévu'}</p><button class="primary" onclick="validateDraftDay('${raw}')">Valider cette date</button></div>`;
+ });
  plannerOutput.innerHTML=html;
 }
 function validateDraftDay(date){const draft=generatedDraft[date];if(!draft||dayLogs[date]?.planned)return alert('Date déjà validée ou programme absent.');
@@ -644,7 +709,54 @@ function validateDraftDay(date){const draft=generatedDraft[date];if(!draft||dayL
 function generateRemainingDraft(){const keys=Object.keys(generatedDraft);if(!keys.length){plannerOutput.innerHTML='<div class="card">Tous les programmes générés ont été validés.</div>';return;}plannerSelectedDates=new Set(keys);generateMenus()}
 function toggleBarcodeEntry(){const e=document.getElementById('barcodeEntry');e.style.display=e.style.display==='none'?'block':'none';if(e.style.display==='block')document.getElementById('manualBarcode').focus()}
 
-document.getElementById('productForm').addEventListener('submit',e=>{e.preventDefault();const previousProduct=editingProductId?products.find(p=>p.id===editingProductId):null;const updatedProduct={id:editingProductId||Date.now().toString(),name:pname.value.trim(),unit:unit.value==='custom'?(customUnitName.value.trim()+(customUnitAmount.value.trim()?' ('+customUnitAmount.value.trim()+')':'')):unit.value,unitGrams:previousProduct?.unitGrams||null,conversionBase:previousProduct?.conversionBase||null,packageQuantity:packageQuantity.value.trim(),kcal:Math.round(Number(kcal.value)),protein:Number(protein.value),carbs:Number(carbs.value||0),fat:Number(fat.value||0),brand:brand.value,barcode:barcode.value,availability:[...document.querySelectorAll('.availability-slot:checked')].map(x=>({day:x.dataset.day,meal:x.dataset.meal})),days:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.day))],meals:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.meal))]};if(editingProductId){products=products.map(p=>p.id===editingProductId?updatedProduct:p);editingProductId=null}else{products.push(updatedProduct)}put('fp_products',products);e.target.reset();document.querySelectorAll('.availability-slot').forEach(x=>x.checked=false);document.querySelector('#productForm button[type=submit]').textContent='Enregistrer dans ma bibliothèque';show('library')});
+document.getElementById('productForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const previousProduct=editingProductId?products.find(p=>p.id===editingProductId):null;
+ const custom=unit.value==='custom';
+ const rawAmount=custom?Number(customUnitAmount.value||0):0;
+ const unitName=custom?customUnitName.value.trim():'';
+ if(custom&&!unitName){alert('Indique le nom de cette unité.');customUnitName.focus();return;}
+ if(custom&&customUnitAmount.value.trim()&&(!Number.isFinite(rawAmount)||rawAmount<=0)){alert('Le grammage doit être supérieur à zéro.');customUnitAmount.focus();return;}
+ const baseValues={kcal:Number(kcal.value)||0,protein:Number(protein.value)||0,carbs:Number(carbs.value)||0,fat:Number(fat.value)||0};
+ const applyGramConversion=custom&&rawAmount>0;
+ const factor=applyGramConversion?rawAmount/100:1;
+ const updatedProduct={
+  id:editingProductId||Date.now().toString(),
+  name:pname.value.trim(),
+  unit:custom?(applyGramConversion?`1 ${unitName} (${rawAmount} g)`:`1 ${unitName}`):unit.value,
+  unitName:custom?unitName:(previousProduct?.unitName||''),
+  unitGrams:applyGramConversion?rawAmount:null,
+  conversionBase:applyGramConversion?{...baseValues}:null,
+  packageQuantity:packageQuantity.value.trim(),
+  kcal:Math.round(baseValues.kcal*factor*10)/10,
+  protein:Math.round(baseValues.protein*factor*10)/10,
+  carbs:Math.round(baseValues.carbs*factor*10)/10,
+  fat:Math.round(baseValues.fat*factor*10)/10,
+  brand:brand.value,
+  barcode:barcode.value.trim(),
+  availability:[...document.querySelectorAll('.availability-slot:checked')].map(x=>({day:x.dataset.day,meal:x.dataset.meal})),
+  days:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.day))],
+  meals:[...new Set([...document.querySelectorAll('.availability-slot:checked')].map(x=>x.dataset.meal))]
+ };
+ if(editingProductId){products=products.map(p=>p.id===editingProductId?updatedProduct:p);editingProductId=null;}else{products.push(updatedProduct);}
+ put('fp_products',products);
+ e.target.reset();
+ document.querySelectorAll('.availability-slot').forEach(x=>x.checked=false);
+ document.getElementById('customUnitFields').style.display='none';
+ document.getElementById('customUnitName').required=false;
+ document.querySelector('#productForm button[type=submit]').textContent='Enregistrer dans ma bibliothèque';
+ document.querySelector('#add h1').textContent='Ajouter un produit';
+ // Efface les données temporaires du scanner, sans toucher au code-barres sauvegardé sur la fiche produit.
+ window.foundProduct=null;
+ document.getElementById('manualBarcode').value='';
+ document.getElementById('barcodePhoto').value='';
+ document.getElementById('barcodeResult').innerHTML='';
+ document.getElementById('barcodePhotoStatus').textContent='';
+ document.getElementById('barcodeEntry').style.display='none';
+ document.getElementById('search').value='';
+ show('library');
+ alert(previousProduct?'Produit modifié avec succès.':'Produit ajouté à la bibliothèque.');
+});
 function removeProduct(id){if(confirm('Supprimer ce produit ?')){products=products.filter(p=>p.id!==id);put('fp_products',products);renderAll()}}
 function editHabit(i){const h=habits[i];if(!h)return;editingHabitIndex=i;document.getElementById('habitCreatePanel').style.display='block';document.getElementById('foodHabitManager').style.display='none';document.getElementById('habitName').value=h.name||'';document.getElementById('habitMeal').value=h.meal||'Déjeuner';document.querySelectorAll('.habit-day-check').forEach(x=>x.checked=(h.days||[]).includes(x.value));renderHabitPicker();(h.items||[]).forEach(it=>{const c=document.querySelector(`.habit-product-check[value="${it.productId}"]`);if(c)c.checked=true;const q=document.querySelector(`.habit-product-qty[data-product="${it.productId}"]`);if(q)q.value=it.quantity||'';});document.querySelector('#habitCreatePanel button.primary').textContent='Enregistrer les modifications';window.scrollTo(0,0)}
 function saveHabit(){
@@ -685,6 +797,7 @@ function removeActualSport(i){actualSportsDraft.splice(i,1);const date=calendarS
 function calendarForecast(date){
  const x=dayLogs[date]||{},tdee=Number(calculateEnergy()?.tdee||2150);
  const dayDeficit=(a)=>{
+  if(a.manualDeficitSet&&Number.isFinite(Number(a.manualDeficit)))return Number(a.manualDeficit);
   if(a.maintenance)return 0;
   const hasIntake=!!(a.planned||Number(a.kcal)>0||Number(a.extraKcal)>0);
   if(!hasIntake)return null;
@@ -692,7 +805,7 @@ function calendarForecast(date){
   const sport=a.actualSports?.length?a.actualSports.reduce((n,z)=>n+Number(z.kcal||0),0):Number(a.planned?(a.plannedSportKcal||0):(a.sportKcal||0));
   return tdee+sport-intake;
  };
- const hasDayData=!!(x.planned||Number(x.kcal)>0||Number(x.extraKcal)>0||x.maintenance);
+ const hasDayData=!!(x.manualDeficitSet||x.planned||Number(x.kcal)>0||Number(x.extraKcal)>0||x.maintenance);
  const rawDeficit=hasDayData?dayDeficit(x):null;
  const deficit=rawDeficit===null?null:Math.round(rawDeficit);
  const weighIns=Object.values(dayLogs).filter(a=>a.date&&a.date<=date&&Number(a.weight)>0).sort((a,b)=>a.date.localeCompare(b.date));
@@ -709,13 +822,27 @@ function calendarForecast(date){
  }
  return {deficit,projected,measured:!!latest&&latest.date===date,hasDayData};
 }
-function renderSelectedProgram(){const el=document.getElementById('calendarSelectedProgram');if(!el)return;const x=dayLogs[calendarSelectedDate]||{},f=calendarForecast(calendarSelectedDate);let html=`<div class="calendar-forecast"><div class="forecast-item"><small>Déficit prévisionnel</small><strong>${f.deficit===null?'—':(f.deficit>0?'+':'')+f.deficit+' kcal'}</strong></div><div class="forecast-item"><small>${f.measured?'Dernier poids mesuré':'Poids prévisionnel'}</small><strong>${f.projected===null?'À renseigner':f.projected.toFixed(2)+' kg'}</strong></div></div>`;if(x.planned){html+=`<p><b>Prévision alimentaire :</b> ${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g de protéines</p>`;html+=(x.plannedMealsData||[]).map(m=>`<div class="menu-slot"><b>${esc(m.meal)}</b><div>${(m.items||[]).map(i=>`${i.unit==='100 g'?Math.round(i.quantity)+' g':i.unit==='100 ml'?Math.round(i.quantity)+' ml':i.unit==='1 unité'?i.quantity+' '+(Number(i.quantity)>1?'unités':'unité'):i.quantity+' '+String(i.unit||'') } de ${esc(i.name)}`).join('<br>')}</div></div>`).join('');if(x.plannedSport?.length)html+=`<p><b>Sport prévu :</b> ${x.plannedSport.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`}else html+='<p class="muted">Aucun programme alimentaire validé pour cette date.</p>';const sports=x.actualSports||[];if(sports.length)html+=`<p><b>Sport réalisé :</b> ${sports.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;else if(x.sportKcal)html+=`<p><b>Sport réalisé :</b> ${x.sportKcal} kcal</p>`;if(x.extraKcal||x.extraProtein)html+=`<p><b>Ajouts hors programme :</b> ${x.extraKcal||0} kcal · ${x.extraProtein||0} g protéines</p>`;if(x.maintenance)html+=`<p><b>Journée en maintenance calorique</b></p>`;if(x.weight)html+=`<p><b>Poids mesuré :</b> ${x.weight} kg</p>`;el.innerHTML=html}
+function renderSelectedProgram(){const el=document.getElementById('calendarSelectedProgram');if(!el)return;const x=dayLogs[calendarSelectedDate]||{},f=calendarForecast(calendarSelectedDate);let html=`<div class="calendar-forecast"><div class="forecast-item"><small>Déficit prévisionnel</small><strong>${f.deficit===null?'—':(f.deficit>0?'+':'')+f.deficit+' kcal'}</strong></div><div class="forecast-item"><small>${f.measured?'Dernier poids mesuré':'Poids prévisionnel'}</small><strong>${f.projected===null?'À renseigner':f.projected.toFixed(2)+' kg'}</strong></div></div>`;if(x.planned){html+=`<p><b>Prévision alimentaire :</b> ${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g de protéines</p>`;html+=(x.plannedMealsData||[]).map(m=>`<div class="menu-slot"><b>${esc(m.meal)}</b><div>${(m.items||[]).map(i=>formatMealProductLine(i)).join('<br>')}</div></div>`).join('');if(x.plannedSport?.length)html+=`<p><b>Sport prévu :</b> ${x.plannedSport.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`}else html+='<p class="muted">Aucun programme alimentaire validé pour cette date.</p>';const sports=x.actualSports||[];if(sports.length)html+=`<p><b>Sport réalisé :</b> ${sports.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;else if(x.sportKcal)html+=`<p><b>Sport réalisé :</b> ${x.sportKcal} kcal</p>`;if(x.extraKcal||x.extraProtein)html+=`<p><b>Ajouts hors programme :</b> ${x.extraKcal||0} kcal · ${x.extraProtein||0} g protéines</p>`;if(x.maintenance)html+=`<p><b>Journée en maintenance calorique</b></p>`;if(x.manualDeficitSet)html+=`<p><b>Déficit personnalisé retenu :</b> ${Number(x.manualDeficit)>0?'+':''}${Number(x.manualDeficit)} kcal (remplace le calcul automatique)</p>`;if(x.weight)html+=`<p><b>Poids mesuré :</b> ${x.weight} kg</p>`;el.innerHTML=html;const manualField=document.getElementById('logManualDeficit');if(manualField)manualField.value=x.manualDeficitSet?x.manualDeficit:''}
 function persistCalendarChanges(){put('fp_day_logs',dayLogs);renderMonthCalendar();renderSelectedProgram();renderCalendarLogs();renderHomeV36();}
 function saveExtraIntake(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');const kcal=Number(logKcal.value||0),protein=Number(logProtein.value||0);if(kcal<0||protein<0)return alert('Les valeurs doivent être positives.');const prev=dayLogs[date]||{};dayLogs[date]={...prev,date,extraKcal:kcal,extraProtein:protein,maintenance:false,kcal:Number(prev.plannedKcal||0)+kcal,protein:Number(prev.plannedProtein||0)+protein};persistCalendarChanges();alert('Les calories et protéines supplémentaires sont validées.');}
 function setMaintenanceDay(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');if(date>localDateString(new Date()))return alert('La maintenance calorique ne peut être enregistrée que pour aujourd’hui ou une date passée.');const prev=dayLogs[date]||{},sport=(prev.actualSports||[]).reduce((n,a)=>n+Number(a.kcal||0),0),tdee=Number(calculateEnergy()?.tdee||2150),target=Math.round(tdee+sport),planned=Number(prev.plannedKcal||0),extra=Math.max(0,target-planned);dayLogs[date]={...prev,date,maintenance:true,extraKcal:extra,extraProtein:Number(prev.extraProtein||0),kcal:planned+extra,protein:Number(prev.plannedProtein||0)+Number(prev.extraProtein||0)};logKcal.value=extra;logProtein.value=prev.extraProtein||0;persistCalendarChanges();alert('Journée positionnée en maintenance calorique.');}
+function saveManualDeficit(){
+ const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');
+ const field=document.getElementById('logManualDeficit'),value=Number(field?.value);
+ if(!field||field.value.trim()===''||!Number.isFinite(value)||Math.abs(value)>10000)return alert('Indique un déficit ou surplus valide en kcal.');
+ const prev=dayLogs[date]||{};
+ dayLogs[date]={...prev,date,manualDeficit:Math.round(value),manualDeficitSet:true};
+ persistCalendarChanges();alert('Déficit manuel enregistré pour cette journée.');
+}
+function clearManualDeficit(){
+ const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');
+ const prev=dayLogs[date]||{};const next={...prev,date};delete next.manualDeficit;delete next.manualDeficitSet;dayLogs[date]=next;
+ persistCalendarChanges();const field=document.getElementById('logManualDeficit');if(field)field.value='';
+ alert('Le calcul automatique du déficit est réactivé.');
+}
 function saveMeasuredWeight(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');if(date>localDateString(new Date()))return alert('Tu ne peux pas enregistrer un poids pour une date future.');const weight=Number(logWeight.value);if(!Number.isFinite(weight)||weight<=0||weight>300)return alert('Indique un poids valide.');const prev=dayLogs[date]||{};dayLogs[date]={...prev,date,weight};personalProfile={...(personalProfile||{}),startWeight:weight};energyProfile={...(energyProfile||{}),weight};put('fp_personal_profile',personalProfile);put('fp_energy_profile',energyProfile);const pw=document.getElementById('profileWeight');if(pw)pw.value=weight;persistCalendarChanges();alert('Poids mesuré validé et profil actualisé.');}
 
-function renderCalendarLogs(){const el=document.getElementById('calendarLogList');if(!el)return;const keys=Object.keys(dayLogs).sort().reverse();el.innerHTML=keys.length?keys.map(k=>{const x=dayLogs[k];const base=calculateEnergy()?.tdee||2150;const deficit=Math.round(base+(x.planned?x.plannedSportKcal||0:x.sportKcal||0)-(x.planned?x.plannedKcal||0:x.kcal||0));return `<div class="card"><b>${k.split('-').reverse().join('/')}</b><div class="muted">${x.planned?'Prévu : '+x.plannedKcal+' kcal · '+x.plannedProtein+' g protéines · sport '+x.plannedSportKcal+' kcal':'Réalisé : '+x.kcal+' kcal · '+x.protein+' g protéines · sport '+x.sportKcal+' kcal'} · déficit estimé ${deficit} kcal ${x.weight?'· poids '+x.weight+' kg':''}</div>${x.plannedMealsData?x.plannedMealsData.map(m=>'<div><b>'+esc(m.meal)+'</b> : '+m.items.map(i=>esc(i.unit==='100 g'?Math.round(i.quantity)+' g':i.unit==='100 ml'?Math.round(i.quantity)+' ml':i.unit==='1 unité'?i.quantity+' unité':i.quantity+' '+String(i.unit||''))+' de '+esc(i.name)).join(', ')+'</div>').join(''):''}${x.plannedSport?.length?'<div><b>Sport prévu :</b> '+x.plannedSport.map(a=>esc(a.name)).join(', ')+'</div>':''}</div>`}).join(''):'<p class="muted">Aucune journée enregistrée.</p>'}
+function renderCalendarLogs(){const el=document.getElementById('calendarLogList');if(!el)return;const keys=Object.keys(dayLogs).sort().reverse();el.innerHTML=keys.length?keys.map(k=>{const x=dayLogs[k];const forecast=calendarForecast(k);const deficit=forecast.deficit;return `<div class="card"><b>${k.split('-').reverse().join('/')}</b><div class="muted">${x.planned?'Prévu : '+x.plannedKcal+' kcal · '+x.plannedProtein+' g protéines · sport '+x.plannedSportKcal+' kcal':'Réalisé : '+x.kcal+' kcal · '+x.protein+' g protéines · sport '+x.sportKcal+' kcal'} · déficit ${x.manualDeficitSet?'personnalisé':'estimé'} ${deficit===null?'—':deficit+' kcal'} ${x.weight?'· poids '+x.weight+' kg':''}</div>${x.plannedMealsData?x.plannedMealsData.map(m=>'<div><b>'+esc(m.meal)+'</b> : '+m.items.map(i=>formatMealProductLine(i)).join(', ')+'</div>').join(''):''}${x.plannedSport?.length?'<div><b>Sport prévu :</b> '+x.plannedSport.map(a=>esc(a.name)).join(', ')+'</div>':''}</div>`}).join(''):'<p class="muted">Aucune journée enregistrée.</p>'}
 function renderWeightChart(){const el=document.getElementById('weightChart');if(!el)return;const pts=Object.values(dayLogs).filter(x=>x.weight).sort((a,b)=>a.date.localeCompare(b.date));if(pts.length<2){el.textContent=pts.length?'Une deuxième pesée permettra de tracer la courbe.':'Ajoute tes pesées dans le calendrier pour afficher la courbe.';return}const vals=pts.map(x=>x.weight),min=Math.min(...vals)-.4,max=Math.max(...vals)+.4,w=320,h=130;const coords=vals.map((v,i)=>`${12+i*(296/(vals.length-1))},${h-12-(v-min)/(max-min)*(h-24)}`).join(' ');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Courbe du poids"><polyline points="${coords}" fill="none" stroke="#21845d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((v,i)=>{const [x,y]=coords.split(' ')[i].split(',');return `<circle cx="${x}" cy="${y}" r="4" fill="#21845d"/>`}).join('')}</svg><div class="muted">${pts[0].weight} kg → ${pts.at(-1).weight} kg · ${pts.length} pesées</div>`}
 function renderHomeV36(){
  if(document.getElementById('logDate')&&!logDate.value)logDate.value=localDateString(new Date());
@@ -727,6 +854,7 @@ function renderHomeV36(){
    const baselineDate=latest?.date||'';
    const cumulative=Object.keys(dayLogs).filter(d=>(!baselineDate||d>baselineDate)&&d<=today).reduce((sum,d)=>{
      const x=dayLogs[d];
+     if(x.manualDeficitSet&&Number.isFinite(Number(x.manualDeficit)))return sum+Number(x.manualDeficit);
      if(x.maintenance)return sum;
      // Une pesée seule ne constitue pas une journée alimentaire : ne pas lui attribuer un déficit fictif.
      if(!(x.planned||Number(x.kcal)>0||Number(x.extraKcal)>0))return sum;
@@ -746,9 +874,9 @@ function renderHomeV36(){
  document.getElementById('homeKcal').textContent=intake?Math.round(intake)+' kcal':'—';
  document.getElementById('homeProtein').textContent=protein?protein+' g':'—';
  const sport=planned?.actualSports?.length?planned.actualSports.reduce((v,a)=>v+Number(a.kcal||0),0):Number(planned?.plannedSportKcal??planned?.sportKcal??0);
- document.getElementById('homeDeficit').textContent=Math.round(tdee+sport-intake)+' kcal';
+ document.getElementById('homeDeficit').textContent=(planned?.manualDeficitSet?Number(planned.manualDeficit):Math.round(tdee+sport-intake))+' kcal';
  document.getElementById('homeWeight').textContent=lastWeight?(latest?projected.toFixed(2):lastWeight.toFixed(1))+' kg':'À renseigner';
- document.getElementById('homeToday').innerHTML=planned?.planned?'<div>'+((planned.plannedMealsData||[]).map(m=>'<p><b>'+esc(m.meal)+'</b> : '+(m.items||[]).map(i=>esc(i.name)+' '+Math.round(i.quantity)+' '+esc(i.unit)).join(', ')+'</p>').join(''))+'<p><b>Sport :</b> '+(planned.plannedSport||[]).map(x=>esc(x.name)+' '+x.minutes+' min').join(', ')+'</p></div>':'Aucun programme validé pour aujourd’hui.';
+ document.getElementById('homeToday').innerHTML=planned?.planned?'<div>'+((planned.plannedMealsData||[]).map(m=>'<p><b>'+esc(m.meal)+'</b> : '+(m.items||[]).map(i=>formatMealProductLine(i)).join(', ')+'</p>').join(''))+'<p><b>Sport :</b> '+(planned.plannedSport||[]).map(x=>esc(x.name)+' '+x.minutes+' min').join(', ')+'</p></div>':'Aucun programme validé pour aujourd’hui.';
  renderWeightChart();
 }
 function loadProfileFields(){const first=document.getElementById('profileFirstName');const weight=document.getElementById('profileWeight');if(first)first.value=personalProfile?.firstName||'';if(weight&&Number(energyProfile?.weight)>0)weight.value=energyProfile.weight;const goalKcal=document.getElementById('goalMode');const goalProtein=document.getElementById('goalProtein');if(goalProtein)goalProtein.value=goals?.protein??energyProfile?.protein??140;if(goalKcal&&goals?.kcal){const mode=String(Math.round(Number(goals.kcal)-Number(calculateEnergy()?.tdee||0)));if(['0','-300','-500','-750'].includes(mode))goalKcal.value=mode==='0'?'maintain':mode;}}
