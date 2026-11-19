@@ -679,16 +679,16 @@ function productPortion(p,role){
  if(role==='carb'&&/pomme de terre|patate|lentille|pois chiche|haricot/.test(name))grams=180;
  if(info.kind==='gram'||info.kind==='ml')return Math.round(grams/5)*5;
  let count=1;
- if(info.grams)count=Math.max(.25,Math.min(3,Math.round((grams/info.grams)*4)/4));
- else if(role==='fat')count=.5;
- else if(role==='carb')count=1;
- return count;
+ if(info.grams)count=Math.max(1,Math.min(3,Math.round(grams/info.grams)));
+ else count=1;
+ // Une unité physique est indivisible : jamais de 0,5 ou 1,5 unité.
+ return Math.max(1,Math.round(count));
 }
 function mealProducts(day,meal){const available=products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal));return available.length?available:products;}
 function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){
  const fixed=habitFor(day,meal);
  if(fixed.length){
-  const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const n=+(it.quantity||((productUnitInfo(p).kind==='gram'||productUnitInfo(p).kind==='ml')?100:1));lines.push({p,n,macro:macroFor(p,n),role:classifyFood(p)})}}));
+  const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const info=productUnitInfo(p);let n=+(it.quantity||((info.kind==='gram'||info.kind==='ml')?100:1));if(info.kind!=='gram'&&info.kind!=='ml')n=Math.max(1,Math.round(n));lines.push({p,n,macro:macroFor(p,n),role:classifyFood(p)})}}));
   return {meal,lines,fixed:true};
  }
  const list=mealProducts(day,meal);if(!list.length)return {meal,lines:[],missing:true};
@@ -725,7 +725,7 @@ function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){
   if(base>0){
    let wanted=needed/base;
    if(info.kind==='gram'||info.kind==='ml')wanted=Math.max(70,Math.min(220,Math.round(wanted/5)*5));
-   else wanted=Math.max(.5,Math.min(3,Math.round(wanted*4)/4));
+   else wanted=Math.max(1,Math.min(3,Math.round(wanted)));
    proteinLine.n=Math.max(proteinLine.n,wanted);proteinLine.macro=macroFor(proteinLine.p,proteinLine.n);
   }
  }
@@ -739,7 +739,7 @@ function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){
    const max=info.kind==='gram'||info.kind==='ml'?150:2.5;
    const min=info.kind==='gram'||info.kind==='ml'?70:.5;
    const desired=Math.max(min,Math.min(max,carbLine.n+(kcalGap/kcalPer)*.55));
-   carbLine.n=info.kind==='gram'||info.kind==='ml'?Math.round(desired/5)*5:Math.round(desired*4)/4;
+   carbLine.n=info.kind==='gram'||info.kind==='ml'?Math.round(desired/5)*5:Math.max(1,Math.round(desired));
    carbLine.macro=macroFor(carbLine.p,carbLine.n);
   }
  }
@@ -884,7 +884,18 @@ function calendarForecast(date){
  }
  return {deficit,projected,measured:!!latest&&latest.date===date,hasDayData};
 }
-function renderSelectedProgram(){const el=document.getElementById('calendarSelectedProgram');if(!el)return;const x=dayLogs[calendarSelectedDate]||{},f=calendarForecast(calendarSelectedDate);let html=`<div class="calendar-forecast"><div class="forecast-item"><small>Déficit prévisionnel</small><strong>${f.deficit===null?'—':(f.deficit>0?'+':'')+f.deficit+' kcal'}</strong></div><div class="forecast-item"><small>${f.measured?'Dernier poids mesuré':'Poids prévisionnel'}</small><strong>${f.projected===null?'À renseigner':f.projected.toFixed(2)+' kg'}</strong></div></div>`;if(x.planned){html+=`<p><b>Prévision alimentaire :</b> ${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g de protéines</p>`;html+=(x.plannedMealsData||[]).map(m=>`<div class="menu-slot"><b>${esc(m.meal)}</b><div>${(m.items||[]).map(i=>formatMealProductLine(i)).join('<br>')}</div></div>`).join('');if(x.plannedSport?.length)html+=`<p><b>Sport prévu :</b> ${x.plannedSport.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`}else html+='<p class="muted">Aucun programme alimentaire validé pour cette date.</p>';const sports=x.actualSports||[];if(sports.length)html+=`<p><b>Sport réalisé :</b> ${sports.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;else if(x.sportKcal)html+=`<p><b>Sport réalisé :</b> ${x.sportKcal} kcal</p>`;if(x.extraKcal||x.extraProtein)html+=`<p><b>Ajouts hors programme :</b> ${x.extraKcal||0} kcal · ${x.extraProtein||0} g protéines</p>`;if(x.maintenance)html+=`<p><b>Journée en maintenance calorique</b></p>`;if(x.manualDeficitSet)html+=`<p><b>Déficit personnalisé retenu :</b> ${Number(x.manualDeficit)>0?'+':''}${Number(x.manualDeficit)} kcal (remplace le calcul automatique)</p>`;if(x.weight)html+=`<p><b>Poids mesuré :</b> ${x.weight} kg</p>`;el.innerHTML=html;const manualField=document.getElementById('logManualDeficit');if(manualField)manualField.value=x.manualDeficitSet?x.manualDeficit:''}
+function renderSelectedProgram(){const el=document.getElementById('calendarSelectedProgram');if(!el)return;const x=dayLogs[calendarSelectedDate]||{},f=calendarForecast(calendarSelectedDate);let html=`<div class="calendar-forecast"><div class="forecast-item"><small>Déficit prévisionnel</small><strong>${f.deficit===null?'—':(f.deficit>0?'+':'')+f.deficit+' kcal'}</strong></div><div class="forecast-item"><small>${f.measured?'Dernier poids mesuré':'Poids prévisionnel'}</small><strong>${f.projected===null?'À renseigner':f.projected.toFixed(2)+' kg'}</strong></div></div>`;if(x.planned){html+=`<p><b>Prévision alimentaire :</b> ${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g de protéines</p>`;html+=(x.plannedMealsData||[]).map(m=>`<div class="menu-slot"><b>${esc(m.meal)}</b><div>${(m.items||[]).map(i=>formatMealProductLine(i)).join('<br>')}</div></div>`).join('');if(x.plannedSport?.length)html+=`<p><b>Sport prévu :</b> ${x.plannedSport.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;html+=`<button type="button" class="danger" style="margin-top:12px" onclick="deleteCalendarProgram('${calendarSelectedDate}')">Supprimer ce programme</button>`}else html+='<p class="muted">Aucun programme alimentaire validé pour cette date.</p>';const sports=x.actualSports||[];if(sports.length)html+=`<p><b>Sport réalisé :</b> ${sports.map(a=>`${esc(a.name)} · ${a.kcal} kcal`).join(' / ')}</p>`;else if(x.sportKcal)html+=`<p><b>Sport réalisé :</b> ${x.sportKcal} kcal</p>`;if(x.extraKcal||x.extraProtein)html+=`<p><b>Ajouts hors programme :</b> ${x.extraKcal||0} kcal · ${x.extraProtein||0} g protéines</p>`;if(x.maintenance)html+=`<p><b>Journée en maintenance calorique</b></p>`;if(x.manualDeficitSet)html+=`<p><b>Déficit personnalisé retenu :</b> ${Number(x.manualDeficit)>0?'+':''}${Number(x.manualDeficit)} kcal (remplace le calcul automatique)</p>`;if(x.weight)html+=`<p><b>Poids mesuré :</b> ${x.weight} kg</p>`;el.innerHTML=html;const manualField=document.getElementById('logManualDeficit');if(manualField)manualField.value=x.manualDeficitSet?x.manualDeficit:''}
+function deleteCalendarProgram(date){
+ if(!date||!dayLogs[date]?.planned)return;
+ if(!confirm('Supprimer le programme validé du '+new Date(date+'T12:00:00').toLocaleDateString('fr-FR')+' ? La journée redeviendra disponible dans l’onglet Programme. Les autres données de la journée seront conservées.'))return;
+ const current={...(dayLogs[date]||{})};
+ ['planned','plannedMealsData','plannedKcal','plannedProtein','plannedSport','plannedSportKcal'].forEach(k=>delete current[k]);
+ dayLogs[date]=current;
+ put('fp_day_logs',dayLogs);
+ if(date>=isoDateLocal(new Date()))plannerSelectedDates.add(date);
+ renderMonthCalendar();renderSelectedProgram();renderCalendarLogs();renderHomeV36();renderPlannerCalendar();
+ alert('Programme supprimé. La date est de nouveau disponible dans l’onglet Programme.');
+}
 function persistCalendarChanges(){put('fp_day_logs',dayLogs);renderMonthCalendar();renderSelectedProgram();renderCalendarLogs();renderHomeV36();}
 function saveExtraIntake(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');const kcal=Number(logKcal.value||0),protein=Number(logProtein.value||0);if(kcal<0||protein<0)return alert('Les valeurs doivent être positives.');const prev=dayLogs[date]||{};dayLogs[date]={...prev,date,extraKcal:kcal,extraProtein:protein,maintenance:false,kcal:Number(prev.plannedKcal||0)+kcal,protein:Number(prev.plannedProtein||0)+protein};persistCalendarChanges();alert('Les calories et protéines supplémentaires sont validées.');}
 function setMaintenanceDay(){const date=calendarSelectedDate;if(!date)return alert('Sélectionne une date.');if(date>localDateString(new Date()))return alert('La maintenance calorique ne peut être enregistrée que pour aujourd’hui ou une date passée.');const prev=dayLogs[date]||{},sport=(prev.actualSports||[]).reduce((n,a)=>n+Number(a.kcal||0),0),tdee=Number(calculateEnergy()?.tdee||2150),target=Math.round(tdee+sport),planned=Number(prev.plannedKcal||0),extra=Math.max(0,target-planned);dayLogs[date]={...prev,date,maintenance:true,extraKcal:extra,extraProtein:Number(prev.extraProtein||0),kcal:planned+extra,protein:Number(prev.plannedProtein||0)+Number(prev.extraProtein||0)};logKcal.value=extra;logProtein.value=prev.extraProtein||0;persistCalendarChanges();alert('Journée positionnée en maintenance calorique.');}
