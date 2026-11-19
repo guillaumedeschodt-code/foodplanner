@@ -58,7 +58,7 @@ h1{font-size:22px;margin:8px 0 4px}.back{border:0;background:none;color:var(--gr
 #plannerOutput .card .macro-line{color:#397c63}
 #plannerOutput .card .menu-slot h4:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#55a783;margin:0 8px 2px 0}
 
-.profile-hero{background:linear-gradient(135deg,#176b4a,#2c8b65);color:#fff;border-radius:18px;padding:18px;margin:12px 0}.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px}.kpi b{font-size:20px;display:block}.chart-wrap{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px;overflow:hidden}.sport-row{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:7px;align-items:center}.program-food{padding:10px 0;border-bottom:1px solid var(--line)}
+.home-meals{display:grid;gap:10px;margin-top:12px}.home-meal{background:#f8fbf9;border:1px solid #e3ece7;border-radius:13px;padding:12px 13px}.home-meal-title{display:flex;align-items:center;gap:8px;font-weight:800;color:#176b4a;margin-bottom:7px}.home-meal-title span{font-size:17px}.home-food-line{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-top:1px solid #edf2ef;font-size:14px;line-height:1.4}.home-food-line:before{content:"";width:6px;height:6px;flex:none;border-radius:50%;background:#68a889;margin-top:7px}.home-no-plan{padding:16px;text-align:center;color:var(--muted);background:#f8faf9;border-radius:12px}.planner-validated{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}.validated-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.validated-row small{display:block;color:var(--muted);margin-top:2px}.danger-btn{border:1px solid #f0caca;background:#fff5f5;color:#a83232;border-radius:9px;padding:8px 10px;font-weight:700;font-size:12px;white-space:nowrap}.profile-hero{background:linear-gradient(135deg,#176b4a,#2c8b65;color:#fff;border-radius:18px;padding:18px;margin:12px 0}.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px}.kpi b{font-size:20px;display:block}.chart-wrap{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px;overflow:hidden}.sport-row{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:7px;align-items:center}.program-food{padding:10px 0;border-bottom:1px solid var(--line)}
 .date-cell.locked-date{opacity:.35;background:#ddd!important;color:#555!important;cursor:not-allowed}.card button.primary{width:100%}
 .month-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.month-calendar .weekday{font-size:11px;color:var(--muted);text-align:center;padding:6px 0}.month-calendar button{min-width:0;min-height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:14px;position:relative}.month-calendar button.has-plan{background:#dbeafe;color:#1d4ed8;border-color:#60a5fa;font-weight:750}.month-calendar button.selected{background:var(--green);color:#fff;border-color:var(--green);font-weight:750}.month-calendar button.selected.has-plan{background:#2563eb;color:#fff;border-color:#1d4ed8}.month-calendar button.today{outline:2px solid #e5a33b;outline-offset:1px}.month-calendar button.has-entry:after{content:'•';display:block;color:#29936a;font-size:17px;line-height:8px}.month-calendar button.selected.has-entry:after{color:#fff}.month-nav{display:flex;justify-content:space-between;align-items:center;gap:10px}.month-nav button{width:auto;padding:8px 14px}.calendar-entry-card label{margin:7px 0 4px;font-size:12px}.compact-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.compact-fields input,.compact-sport-row input{padding:8px 9px;font-size:14px;min-width:0}.compact-sport-row{display:grid;grid-template-columns:1.2fr .8fr;gap:8px}.sport-add{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.sport-entry{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.calendar-forecast{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 16px}.forecast-item{background:#eaf5ef;border:1px solid #cce6d7;border-radius:12px;padding:13px 10px;text-align:center}.forecast-item small{display:block;color:#286447;font-size:12px;font-weight:650;margin-bottom:6px}.forecast-item strong{display:block;color:#145b3b;font-size:22px;font-weight:800}@media(max-width:380px){.forecast-item strong{font-size:19px}}/* FOODPLANNER — refonte visuelle premium / mobile-first */
 :root{--green:#126b50;--green2:#e4f5ed;--ink:#14231f;--muted:#71817b;--line:#e5ebe8;--bg:#f2f5f4;--white:#fff;--orange:#fff1d7;--accent:#c6f36b;--navy:#102b27;--shadow:0 8px 26px rgba(18,45,37,.075);--shadow-soft:0 3px 12px rgba(18,45,37,.055)}
@@ -158,7 +158,7 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
 <div class="card"><b>Générer mes menus</b>
 <div class="planner-cal-head"><b>Dates à inclure</b><div class="planner-cal-nav"><button type="button" class="smallbtn" onclick="changePlannerMonth(-1)">‹</button><strong id="plannerMonthTitle"></strong><button type="button" class="smallbtn" onclick="changePlannerMonth(1)">›</button></div></div>
 <div id="plannerCalendar" class="planner-calendar"></div>
-<p class="muted" id="plannerSelectionHint">Sélectionne directement les dates dans le calendrier.</p>
+<p class="muted" id="plannerSelectionHint">Sélectionne directement les dates dans le calendrier.</p><div id="plannerValidated" class="planner-validated"></div>
 <button class="primary" onclick="generateMenus()">Générer mon programme</button></div><div id="plannerOutput"></div></section>
 <section id="quickMealsScreen" class="screen">
  <button class="back" type="button" onclick="show('planner')">← Retour à mes menus</button>
@@ -626,7 +626,11 @@ function renderPlannerCalendar(){
  for(let d=1;d<=last.getDate();d++){const date=isoDateLocal(new Date(y,m,d)),past=date<today,locked=!!dayLogs[date]?.planned,classes=['date-cell',plannerSelectedDates.has(date)?'chosen':'',locked?'locked-date':'',past?'past-date':''].filter(Boolean).join(' ');html+=`<button type="button" ${locked||past?'disabled title="'+(locked?'Programme validé':'Date passée')+'"':''} class="${classes}" aria-pressed="${plannerSelectedDates.has(date)}" onclick="togglePlannerDate('${date}')">${d}</button>`}
  el.innerHTML=html;
  document.getElementById('plannerSelectionHint').textContent=`${plannerSelectedDates.size} date(s) sélectionnée(s). Touche une date pour la cocher ou la décocher.`;
+ renderValidatedPrograms();
 }
+function renderValidatedPrograms(){const el=document.getElementById('plannerValidated');if(!el)return;const keys=Object.keys(dayLogs).filter(k=>dayLogs[k]?.planned).sort();el.innerHTML=keys.length?'<b>Programmes déjà validés</b>'+keys.map(k=>{const x=dayLogs[k],count=(x.plannedMealsData||[]).reduce((n,m)=>n+(m.items||[]).length,0);return `<div class="validated-row"><div><b>${k.split('-').reverse().join('/')}</b><small>${x.plannedKcal||0} kcal · ${x.plannedProtein||0} g protéines · ${count} aliments</small></div><button class="danger-btn" onclick="deleteValidatedProgram('${k}')">Supprimer</button></div>`}).join(''):'<span class="muted">Aucun programme validé pour le moment.</span>';}
+function deleteValidatedProgram(date){const x=dayLogs[date];if(!x?.planned)return;if(!confirm('Supprimer le programme validé du '+date.split('-').reverse().join('/')+' ? Les autres données de cette journée (poids, sport réalisé, déficit manuel…) seront conservées.'))return;const next={...x};['planned','plannedMealsData','plannedKcal','plannedProtein','plannedSport','plannedSportKcal'].forEach(k=>delete next[k]);if(Object.keys(next).filter(k=>k!=='date').length)dayLogs[date]=next;else delete dayLogs[date];put('fp_day_logs',dayLogs);plannerSelectedDates.add(date);renderPlannerCalendar();renderCalendarLogs();renderMonthCalendar();renderHomeV36();plannerOutput.innerHTML='';alert('Programme supprimé. Tu peux maintenant sélectionner cette date et en générer un nouveau.');}
+
 function setPlannerMode(m){plannerMode=m;updatePlannerHint()}
 function updatePlannerHint(){/* Les objectifs restent utilisés pour le calcul, sans rappel dans l'onglet Programme. */}
 function weekdayName(d){return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][d.getDay()]}
@@ -644,21 +648,22 @@ function macroFor(p,n){const info=productUnitInfo(p),f=(info.kind==='gram'||info
 function formatMealProductLine(item){const p=item.p||item,n=Number(item.n??item.quantity??0),info=productUnitInfo(p);let quantity='';
  if(info.kind==='gram')quantity=`${Math.round(n)} g`;
  else if(info.kind==='ml')quantity=`${Math.round(n)} ml`;
- else {const count=Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');quantity=`${count} ${info.label}${info.grams?` (${Math.round(n*info.grams)} g)`:''}`;}
+ else {const count=Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');quantity=`${count} ${info.label}`;}
  return `${quantity} de ${esc(p.name)}`;
 }
 function classifyFood(p){const n=String(p.name||'').toLowerCase(),k=Number(p.kcal)||0,pr=Number(p.protein)||0;
- if(/poulet|dinde|boeuf|bœuf|jambon|thon|saumon|poisson|cabillaud|œuf|oeuf|crevette|steak|viande|tofu|tempeh|protéin|protein|skyr|fromage blanc|yaourt|petit suisse/.test(n)||pr>=15)return 'protein';
- if(/riz|pâte|pates|pâtes|semoule|quinoa|pain|flocon|avoine|pomme de terre|patate|céréale|cereale|wrap|tortilla|lentille|pois chiche|haricot rouge/.test(n))return 'carb';
+ // Priorité aux familles alimentaires explicites pour éviter de classer les féculents comme protéines.
+ if(/riz|pâte|pates|pâtes|semoule|quinoa|pain|flocon|avoine|pomme de terre|patate|céréale|cereale|wrap|tortilla|couscous|boulgour|polenta|nouille/.test(n))return 'carb';
  if(/légume|legume|salade|tomate|carotte|courgette|brocoli|haricot vert|épinard|epinard|poireau|concombre|champignon|ratatouille/.test(n))return 'veg';
  if(/pomme|banane|orange|fruit|fraise|myrtille|kiwi|poire|compote|raisin|clémentine|clementine/.test(n))return 'fruit';
  if(/huile|beurre|amande|noix|cacahuète|cacahuete|avocat|purée d'oléagineux|miel|chocolat/.test(n))return 'fat';
- if(/lait|skyr|yaourt|fromage blanc|fromage|dessert/.test(n))return 'dairy';
+ if(/lait|skyr|yaourt|fromage blanc|fromage|dessert|petit suisse/.test(n))return 'dairy';
+ if(/poulet|dinde|boeuf|bœuf|jambon|thon|saumon|poisson|cabillaud|œuf|oeuf|crevette|steak|viande|tofu|tempeh|protéin|protein/.test(n)||pr>=15)return 'protein';
  if(pr>0&&pr/k>0.07)return 'protein';
  return 'other';
 }
 function productPortion(p,role,calorieShare,proteinShare){const info=productUnitInfo(p),k=Math.max(0.1,Number(p.kcal)||0),pr=Math.max(0,Number(p.protein)||0);
- const grams=role==='protein'?130:role==='carb'?100:role==='veg'?150:role==='fruit'?120:role==='dairy'?150:role==='fat'?8:80;
+ const grams=role==='protein'?140:role==='carb'?150:role==='veg'?180:role==='fruit'?130:role==='dairy'?170:role==='fat'?8:80;
  if(info.kind==='gram'||info.kind==='ml')return Math.max(role==='fat'?5:30,Math.round(grams/5)*5);
  let count=1;if(info.grams)count=Math.max(0.25,Math.min(3,Math.round((grams/info.grams)*4)/4));
  else if(role==='protein'&&pr<8)count=Math.max(1,Math.min(2,Math.round(12/Math.max(1,pr))));
@@ -683,15 +688,15 @@ function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){const fixed=hab
  if(carbLine&&kcalNow>targetKcal*1.18){const info=productUnitInfo(carbLine.p);carbLine.n=info.kind==='gram'?Math.max(40,Math.round(carbLine.n*.75/5)*5):Math.max(.5,carbLine.n*.75);carbLine.macro=macroFor(carbLine.p,carbLine.n)}
  return {meal,lines};
 }
-let generatedDraft={};
+let generatedDraft={},generationNonce=0;
 function generateMenus(){
  const dates=[...plannerSelectedDates].sort().filter(x=>!dayLogs[x]?.planned);if(!dates.length)return alert('Sélectionne au moins une date non validée.');
  const kcalGoal=Number(goals?.kcal||energyProfile?.target||0),proteinGoal=Number(goals?.protein||energyProfile?.protein||0);
  if(!kcalGoal||!proteinGoal)return alert('Renseigne et enregistre tes objectifs de calories et de protéines dans Profil avant de générer un programme.');
  const defs=[['Petit-déjeuner',.25,.22],['Déjeuner',.35,.32],['Collation',.15,.18],['Dîner',.25,.28]];
- generatedDraft={};let html='';
+ generatedDraft={};let html='';generationNonce++;const randomSeed=Math.floor(Math.random()*100000)+generationNonce*17;
  dates.forEach((raw,dayIndex)=>{const date=new Date(raw+'T12:00:00'),day=weekdayName(date),sports=sportsForDate(raw);
- const meals=defs.map(([meal,share,proteinShare],mealIndex)=>buildMeal(day,meal,kcalGoal*share,proteinGoal*proteinShare,dayIndex+mealIndex));
+ const meals=defs.map(([meal,share,proteinShare],mealIndex)=>buildMeal(day,meal,kcalGoal*share,proteinGoal*proteinShare,randomSeed+dayIndex*13+mealIndex*7));
  const kcal=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.kcal,0),0),protein=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.protein,0),0),sportKcal=sports.reduce((a,x)=>a+Number(x.kcal||0),0);
  generatedDraft[raw]={date:raw,meals,sports,kcal,protein,sportKcal};
  const kcalPct=Math.round(kcal/kcalGoal*100),proteinPct=Math.round(protein/proteinGoal*100);
@@ -876,7 +881,7 @@ function renderHomeV36(){
  const sport=planned?.actualSports?.length?planned.actualSports.reduce((v,a)=>v+Number(a.kcal||0),0):Number(planned?.plannedSportKcal??planned?.sportKcal??0);
  document.getElementById('homeDeficit').textContent=(planned?.manualDeficitSet?Number(planned.manualDeficit):Math.round(tdee+sport-intake))+' kcal';
  document.getElementById('homeWeight').textContent=lastWeight?(latest?projected.toFixed(2):lastWeight.toFixed(1))+' kg':'À renseigner';
- document.getElementById('homeToday').innerHTML=planned?.planned?'<div>'+((planned.plannedMealsData||[]).map(m=>'<p><b>'+esc(m.meal)+'</b> : '+(m.items||[]).map(i=>formatMealProductLine(i)).join(', ')+'</p>').join(''))+'<p><b>Sport :</b> '+(planned.plannedSport||[]).map(x=>esc(x.name)+' '+x.minutes+' min').join(', ')+'</p></div>':'Aucun programme validé pour aujourd’hui.';
+ document.getElementById('homeToday').innerHTML=planned?.planned?'<div class="home-meals">'+((planned.plannedMealsData||[]).map((m,idx)=>'<section class="home-meal"><div class="home-meal-title"><span>'+(['☀️','🍽️','🍎','🌙'][idx]||'🥗')+'</span>'+esc(m.meal)+'</div>'+(m.items||[]).map(i=>'<div class="home-food-line">'+formatMealProductLine(i)+'</div>').join('')+'</section>').join(''))+'</div>'+(planned.plannedSport?.length?'<p class="muted" style="margin-top:12px"><b>Sport prévu :</b> '+planned.plannedSport.map(x=>esc(x.name)+' · '+x.minutes+' min').join(' / ')+'</p>':''):'<div class="home-no-plan">Aucun programme validé pour aujourd’hui.</div>';
  renderWeightChart();
 }
 function loadProfileFields(){const first=document.getElementById('profileFirstName');const weight=document.getElementById('profileWeight');if(first)first.value=personalProfile?.firstName||'';if(weight&&Number(energyProfile?.weight)>0)weight.value=energyProfile.weight;const goalKcal=document.getElementById('goalMode');const goalProtein=document.getElementById('goalProtein');if(goalProtein)goalProtein.value=goals?.protein??energyProfile?.protein??140;if(goalKcal&&goals?.kcal){const mode=String(Math.round(Number(goals.kcal)-Number(calculateEnergy()?.tdee||0)));if(['0','-300','-500','-750'].includes(mode))goalKcal.value=mode==='0'?'maintain':mode;}}
