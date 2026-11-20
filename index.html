@@ -361,8 +361,10 @@ async function initialiseFoodPlanner(){
   const today=isoDateLocal(new Date());
   plannerSelectedDates=new Set([today]);plannerMonth=new Date(today+'T12:00:00');renderPlannerCalendar();
  }catch(err){
-  document.body.innerHTML='<div style="padding:24px;font-family:system-ui"><h2>FoodPlanner ne peut pas ouvrir sa base de données</h2><p>Vérifie que tu utilises Chrome avec le site en HTTPS, puis recharge la page. Tes données intégrées ne sont pas supprimées.</p><p>'+String(err)+'</p></div>';
-  console.error(err);
+  console.error('FoodPlanner initialisation / affichage :',err);
+  let errorBox=document.getElementById('fpStartupError');
+  if(!errorBox){errorBox=document.createElement('div');errorBox.id='fpStartupError';errorBox.style.cssText='margin:12px;padding:14px;border:1px solid #e5c9a8;border-radius:12px;background:#fff8ed;color:#694b27;font:13px system-ui';document.querySelector('main')?.prepend(errorBox);}
+  if(errorBox)errorBox.innerHTML='<b>FoodPlanner n’a pas pu terminer son affichage.</b><br>Les données enregistrées ne sont pas effacées. Détail technique : '+String(err).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
  }
 }
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));renderAll();window.scrollTo(0,0)}
@@ -408,7 +410,7 @@ function productCard(p){return `<div class="card product" role="button" tabindex
 function openProductDetail(id){
  const p=products.find(x=>x.id===id);if(!p)return;
  const slots=p.availability?.length?p.availability.map(a=>a.day+' · '+a.meal).join(', '):((p.days||[]).length?(p.days||[]).join(', '):'Disponibilité non définie');
- document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><div class="product-category-detail"><small>Catégorie</small><b>${esc(p.category||'Non renseignée')}</b></div><p class="muted">${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le nom et le poids d'une portion. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertUnitName">Nom de l'unité</label><input id="convertUnitName" placeholder="Ex. pot, portion" value="${esc(p.unitName||'')}"></div><div><label for="convertGrams">Grammage (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div></div><button class="primary" style="margin-top:10px" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
+ const detailHost=document.getElementById('productDetailContent');if(!detailHost)return;detailHost.innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><div class="product-category-detail"><small>Catégorie</small><b>${esc(p.category||'Non renseignée')}</b></div><p class="muted">${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le nom et le poids d'une portion. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertUnitName">Nom de l'unité</label><input id="convertUnitName" placeholder="Ex. pot, portion" value="${esc(p.unitName||'')}"></div><div><label for="convertGrams">Grammage (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div></div><button class="primary" style="margin-top:10px" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
  document.getElementById('productDetailOverlay').classList.add('open');
 }
 let editingProductId=null;
@@ -458,13 +460,13 @@ function convertProductToUnit(id){
  const updated={...p,conversionBase:{...base},unitGrams:grams,unitName,unit:`1 ${unitName} (${grams} g)`,kcal:Math.round(base.kcal*factor*10)/10,protein:Math.round(base.protein*factor*10)/10,carbs:Math.round(base.carbs*factor*10)/10,fat:Math.round(base.fat*factor*10)/10};
  products=products.map(x=>x.id===id?updated:x);put('fp_products',products);
  closeProductDetail();
- document.getElementById('barcodeResult').innerHTML='';
+ const barcodeResultEl=document.getElementById('barcodeResult');if(barcodeResultEl)barcodeResultEl.innerHTML='';
  renderProducts();show('library');
  alert(`Conversion enregistrée : 1 ${unitName} (${grams} g). La fiche du produit a été mise à jour.`);
 }
 function closeProductDetail(){document.getElementById('productDetailOverlay').classList.remove('open')}
 function setAvailability(checked){document.querySelectorAll(".availability-slot").forEach(x=>x.checked=checked)}
-function renderProducts(){let q=(document.getElementById('search')?.value||'').toLowerCase();let list=products.filter(p=>p.name.toLowerCase().includes(q));document.getElementById('products').innerHTML=list.length?list.map(productCard).join():'<div class="empty">Aucun produit pour le moment.<br>Ajoute ton premier aliment !</div>'}
+function renderProducts(){const target=document.getElementById('products');if(!target)return;let q=(document.getElementById('search')?.value||'').toLowerCase();let list=products.filter(p=>p.name.toLowerCase().includes(q));target.innerHTML=list.length?list.map(productCard).join():'<div class="empty">Aucun produit pour le moment.<br>Ajoute ton premier aliment !</div>'}
 function renderHome(){}
 let editingHabitIndex=null,editingSportHabitIndex=null;
 function openHabitList(type){document.getElementById('habitLanding').style.display='none';document.getElementById('habitActions').style.display='none';document.getElementById('foodHabitManager').style.display=type==='food'?'block':'none';document.getElementById('sportHabitManager').style.display=type==='sport'?'block':'none';renderHabits();renderSportHabits();}
@@ -506,7 +508,8 @@ function renderHabitPicker(){
 }
 function renderHabits(){
  renderHabitPicker();
- document.getElementById('habitList').innerHTML=habits.length?habits.map((h,i)=>{
+ const habitListEl=document.getElementById('habitList');if(!habitListEl)return;
+ habitListEl.innerHTML=habits.length?habits.map((h,i)=>{
   const items=(h.items||[]).map(it=>{const p=products.find(x=>x.id===it.productId);return p?`${esc(p.name)}${it.quantity?` (${esc(it.quantity)} ${habitQtyLabel(p)})`:''}`:'Produit supprimé'}).join(', ');
   return `<div class="card"><b>${esc(h.name)}</b><div class="muted">${esc(h.meal||'Repas')} · ${esc((h.days&&h.days.length?h.days:[h.day||h.days||'Jour non défini']).join(', '))}</div><div style="margin-top:7px">${items||'<span class="muted">Aucun produit sélectionné</span>'}</div><div class="row" style="gap:8px;margin-top:9px"><button class="smallbtn" onclick="editHabit(${i})">Modifier</button><button class="smallbtn" onclick="removeHabit(${i})">Supprimer</button></div></div>`;
  }).join():'<div class="empty">Aucun repas habituel enregistré.</div>';
@@ -847,14 +850,14 @@ function generateMenus(){
   html+=failed.map(x=>{const b=x.best;return `<div class="card" style="border:1px solid #d97706"><h3>${esc(x.day)} ${x.date.split('-').reverse().join('/')}</h3><b>Impossible de trouver une combinaison adaptée aux objectifs de la journée.</b><p class="muted">Meilleur résultat trouvé après 1 400 essais : ${b?Math.round(b.kcal)+' kcal ('+(b.kcalError*100).toFixed(1)+' %) et '+b.protein.toFixed(1)+' g de protéines ('+(b.proteinError*100).toFixed(1)+' %)':'aucune combinaison exploitable'}.</p><p class="muted">Aucun programme ne peut être validé tant que les objectifs ne sont pas atteints. Vérifie les produits et leurs disponibilités pour ce jour.</p></div>`}).join('');
  }
  if(!html)html='<div class="card">Aucune combinaison exploitable avec les produits actuellement disponibles pour ces dates.</div>';
- plannerOutput.innerHTML=html;
+ const plannerOutputEl=document.getElementById('plannerOutput');if(plannerOutputEl)plannerOutputEl.innerHTML=html;
 }
 function validateDraftDay(date){const draft=generatedDraft[date];if(!draft||dayLogs[date]?.planned)return alert('Date déjà validée ou programme absent.');
  const meals=draft.meals.map(m=>({meal:m.meal,items:m.lines.map(l=>({name:l.p.name,quantity:l.n,unit:l.p.unit,kcal:l.macro.kcal,protein:l.macro.protein}))}));
  dayLogs[date]={...(dayLogs[date]||{}),date,planned:true,plannedMealsData:meals,plannedKcal:Math.round(draft.kcal),plannedProtein:+draft.protein.toFixed(1),plannedSport:draft.sports.map(x=>({name:x.name,minutes:x.minutes,kcal:x.kcal})),plannedSportKcal:draft.sportKcal};
  put('fp_day_logs',dayLogs);delete generatedDraft[date];plannerSelectedDates.delete(date);renderPlannerCalendar();renderCalendarLogs();renderHomeV36();generateRemainingDraft();alert('Programme validé et ajouté au calendrier.');
 }
-function generateRemainingDraft(){const keys=Object.keys(generatedDraft);if(!keys.length){plannerOutput.innerHTML='<div class="card">Tous les programmes générés ont été validés.</div>';return;}plannerSelectedDates=new Set(keys);generateMenus()}
+function generateRemainingDraft(){const keys=Object.keys(generatedDraft);if(!keys.length){const plannerOutputEl=document.getElementById('plannerOutput');if(plannerOutputEl)plannerOutputEl.innerHTML='<div class="card">Tous les programmes générés ont été validés.</div>';return;}plannerSelectedDates=new Set(keys);generateMenus()}
 function toggleBarcodeEntry(){const e=document.getElementById('barcodeEntry');e.style.display=e.style.display==='none'?'block':'none';if(e.style.display==='block')document.getElementById('manualBarcode').focus()}
 
 document.getElementById('productForm').addEventListener('submit',e=>{
@@ -899,7 +902,7 @@ document.getElementById('productForm').addEventListener('submit',e=>{
  window.foundProduct=null;
  document.getElementById('manualBarcode').value='';
  document.getElementById('barcodePhoto').value='';
- document.getElementById('barcodeResult').innerHTML='';
+ const barcodeResultEl=document.getElementById('barcodeResult');if(barcodeResultEl)barcodeResultEl.innerHTML='';
  document.getElementById('barcodePhotoStatus').textContent='';
  document.getElementById('barcodeEntry').style.display='none';
  document.getElementById('search').value='';
@@ -1036,7 +1039,7 @@ function renderHomeV36(){
  const sport=planned?.actualSports?.length?planned.actualSports.reduce((v,a)=>v+Number(a.kcal||0),0):Number(planned?.plannedSportKcal??planned?.sportKcal??0);
  document.getElementById('homeDeficit').textContent=(planned?.manualDeficitSet?Number(planned.manualDeficit):Math.round(tdee+sport-intake))+' kcal';
  document.getElementById('homeWeight').textContent=lastWeight?(latest?projected.toFixed(2):lastWeight.toFixed(1))+' kg':'À renseigner';
- document.getElementById('homeToday').innerHTML=planned?.planned?'<div class="home-meal-list">'+((planned.plannedMealsData||[]).map(m=>'<div class="home-meal-block"><b>'+esc(m.meal)+'</b><div class="home-meal-items">'+(m.items||[]).map(i=>'<div class="home-meal-item">• '+formatMealProductLine(i)+'</div>').join('')+'</div></div>').join(''))+'<div class="home-meal-block"><b>Sport</b><div class="home-meal-items">'+(planned.plannedSport||[]).map(x=>'<div class="home-meal-item">• '+esc(x.name)+' '+x.minutes+' min</div>').join('')+'</div></div></div>':'Aucun programme validé pour aujourd’hui.';
+ const homeTodayEl=document.getElementById('homeToday');if(homeTodayEl)homeTodayEl.innerHTML=planned?.planned?'<div class="home-meal-list">'+((planned.plannedMealsData||[]).map(m=>'<div class="home-meal-block"><b>'+esc(m.meal)+'</b><div class="home-meal-items">'+(m.items||[]).map(i=>'<div class="home-meal-item">• '+formatMealProductLine(i)+'</div>').join('')+'</div></div>').join(''))+'<div class="home-meal-block"><b>Sport</b><div class="home-meal-items">'+(planned.plannedSport||[]).map(x=>'<div class="home-meal-item">• '+esc(x.name)+' '+x.minutes+' min</div>').join('')+'</div></div></div>':'Aucun programme validé pour aujourd’hui.';
  renderWeightChart();
 }
 function loadProfileFields(){const first=document.getElementById('profileFirstName');const weight=document.getElementById('profileWeight');if(first)first.value=personalProfile?.firstName||'';if(weight&&Number(energyProfile?.weight)>0)weight.value=energyProfile.weight;const goalKcal=document.getElementById('goalMode');const goalProtein=document.getElementById('goalProtein');if(goalProtein)goalProtein.value=goals?.protein??energyProfile?.protein??140;if(goalKcal&&goals?.kcal){const mode=String(Math.round(Number(goals.kcal)-Number(calculateEnergy()?.tdee||0)));if(['0','-300','-500','-750'].includes(mode))goalKcal.value=mode==='0'?'maintain':mode;}}
