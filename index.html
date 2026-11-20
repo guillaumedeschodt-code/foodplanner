@@ -105,7 +105,16 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
 .home-meal-items{display:flex;flex-direction:column;gap:3px}
 .home-meal-item{line-height:1.45}
 </style>
-</head>
+<style>
+/* Bibliothèque produits : lignes plus denses pour limiter le défilement */
+#products .product{padding:7px 10px;margin:3px 0;border-radius:11px;gap:7px;min-height:48px}
+#products .product b{font-size:14px;line-height:1.25}
+#products .product .product-meta{font-size:11px;line-height:1.25;margin-top:1px}
+#products .product .chevron{font-size:18px;padding:0 2px}
+.product-category-detail{display:flex;flex-direction:column;gap:3px;padding:9px 11px;margin:10px 0;border-radius:10px;background:rgba(33,132,93,.08)}
+.product-category-detail small{font-size:11px;color:var(--muted)}
+.product-category-detail b{font-size:14px}
+</style></head>
 <body>
 <header>
  <div class="top"><div><div class="brand">🥗 FoodPlanner</div><div class="tag">TON ASSISTANT NUTRITIONNEL</div></div><div style="font-size:25px">☘️</div></div>
@@ -125,7 +134,15 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
  <h1>Mes produits</h1><p class="muted">Bibliothèque, scan et ajout de nouveaux aliments.</p>
  <div class="card"><button class="primary product-action" type="button" onclick="document.getElementById('barcodePhoto').click()">📷 Scanner un produit</button><button class="primary product-action" type="button" onclick="toggleBarcodeEntry()">⌨️ Saisir un code barre</button><div id="barcodeEntry" style="display:none"><label>Code-barres</label><div class="row"><input id="manualBarcode" inputmode="numeric" placeholder="Code EAN"><button class="primary" onclick="lookupBarcode()">Rechercher</button></div></div><button class="primary product-action" type="button" onclick="startNewProduct()">Ajouter un produit</button><input id="barcodePhoto" type="file" accept="image/*" capture="environment" style="display:none"><p id="barcodePhotoStatus" class="muted" aria-live="polite"></p><div id="barcodeResult"></div></div><h2>Liste des produits</h2>
  <label for="search">Rechercher un aliment</label><input id="search" placeholder="Ex. skyr, poulet, riz…" oninput="renderProducts()">
- <div id="products"></div>
+ <div class="row" style="align-items:center;justify-content:space-between;margin:10px 0"><b>Catégories</b><button type="button" class="secondary" onclick="openCategoryManager()">Gérer les catégories</button></div>
+ <div id="categoryManager" class="card" style="display:none">
+  <b>Mes catégories de produits</b>
+  <p class="muted">Ajoute une catégorie ou modifie son nom. Les produits associés seront mis à jour automatiquement.</p>
+  <div id="categoryManagerList"></div>
+  <div class="row" style="align-items:end;margin-top:12px"><div><label for="newCategoryName">Nouvelle catégorie</label><input id="newCategoryName" placeholder="Ex. Légumineuses"></div><button type="button" class="primary" onclick="addProductCategory()">Ajouter</button></div>
+  <button type="button" class="secondary" style="margin-top:10px" onclick="closeCategoryManager()">Fermer</button>
+ </div>
+</div>
 </section>
 
 <section id="add" class="screen">
@@ -133,7 +150,7 @@ nav{border:1px solid #e6ebe7;border-radius:17px;background:rgba(255,255,255,.96)
  <h1>Ajouter un produit</h1><p class="muted">Renseigne les valeurs indiquées sur l'emballage, généralement pour 100 g ou 100 ml.</p>
  <form id="productForm">
   <label>Nom du produit *</label><input id="pname" required placeholder="Ex. Skyr nature">
-  <label>Catégorie alimentaire *</label><select id="foodCategory" required><option value="">Choisir une catégorie</option><option value="starch">Féculents</option><option value="protein">Protéines</option><option value="vegetable">Légumes</option><option value="fruit">Fruits</option><option value="dairy">Produits laitiers</option><option value="fat">Matières grasses</option><option value="extra">Compléments / accompagnements</option><option value="prepared">Plats composés</option></select><small class="muted">Cette catégorie aide FoodPlanner à composer des repas cohérents.</small>
+  <label for="productCategory">Catégorie</label><select id="productCategory"></select>
   <div class="row"><div><label>Valeurs nutritionnelles pour</label><select id="unit" onchange="toggleCustomUnit()"><option value="100 g">100 g</option><option value="100 ml">100 ml</option><option value="1 unité">1 unité</option><option value="custom">Unité personnalisée…</option></select></div></div>
   <div id="customUnitFields" class="row" style="display:none"><div><label>Nom de l'unité</label><input id="customUnitName" placeholder="Ex. pot, portion"></div><div><label>Grammage de l'unité (g)</label><input id="customUnitAmount" type="number" min="1" step="1" placeholder="Ex. 250"></div></div>
   <label>Quantité totale du produit (facultatif)</label><input id="packageQuantity" placeholder="Ex. 400 g, 2 x 125 g, 1 litre">
@@ -284,7 +301,7 @@ function put(k,v){
  fpCache[k]=v;
  if(fpDb) dbPut(fpDb,k,v).catch(err=>console.error('FoodPlanner database write failed',err));
 }
-let products=get('fp_products',[]), habits=get('fp_habits',[]), goals=get('fp_goals',{kcal:1700,protein:140}), energyProfile=get('fp_energy_profile',{age:37,sex:'male',weight:68.9,height:183,activity:1.375,mode:'-500',protein:140}), plannerMode='day', quickMeals=get('fp_quick_meals',[]);
+let products=get('fp_products',[]), productCategories=get('fp_product_categories',[]), habits=get('fp_habits',[]), goals=get('fp_goals',{kcal:1700,protein:140}), energyProfile=get('fp_energy_profile',{age:37,sex:'male',weight:68.9,height:183,activity:1.375,mode:'-500',protein:140}), plannerMode='day', quickMeals=get('fp_quick_meals',[]);
 
 async function exportFoodPlannerBackup(){
  const status=document.getElementById('fpBackupStatus');
@@ -329,7 +346,7 @@ async function initialiseFoodPlanner(){
   }else{
    for(const [key,value] of Object.entries(FP_SEED)) await dbPut(fpDb,key,value);
   }
-  products=get('fp_products',[]);habits=get('fp_habits',[]);goals=get('fp_goals',{kcal:1700,protein:140});
+  products=get('fp_products',[]);productCategories=get('fp_product_categories',[]);ensureProductCategories();renderProductCategorySelect('');habits=get('fp_habits',[]);goals=get('fp_goals',{kcal:1700,protein:140});
   energyProfile=get('fp_energy_profile',{age:37,sex:'male',weight:68.9,height:183,activity:1.375,mode:'-500',protein:140});
   quickMeals=get('fp_quick_meals',[]);
   // Recharger les données de profil APRÈS la lecture IndexedDB.
@@ -349,17 +366,54 @@ async function initialiseFoodPlanner(){
 }
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));renderAll();window.scrollTo(0,0)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function productCard(p){return `<div class="card product" role="button" tabindex="0" onclick="openProductDetail('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProductDetail('${p.id}')}"><div style="min-width:0"><b>${esc(p.name)}</b><div class="product-meta">${esc(({starch:'Féculents',protein:'Protéines',vegetable:'Légumes',fruit:'Fruits',dairy:'Produits laitiers',fat:'Matières grasses',extra:'Compléments',prepared:'Plats composés'})[p.foodCategory]||p.category||'Catégorie à vérifier')} · ${esc(p.unit)} · ${Math.round(Number(p.kcal))} kcal · ${Number(p.protein||0)} g prot.</div></div><span class="chevron">›</span></div>`}
+const DEFAULT_PRODUCT_CATEGORIES=['Féculents','Protéines','Produits laitiers','Fruits','Légumes','Matières grasses','Snacks','Autres'];
+function ensureProductCategories(){
+ const fromProducts=products.map(p=>String(p.category||'').trim()).filter(Boolean);
+ productCategories=[...new Set([...(productCategories||[]),...DEFAULT_PRODUCT_CATEGORIES,...fromProducts])];
+ put('fp_product_categories',productCategories);
+}
+function renderProductCategorySelect(selected=''){
+ const select=document.getElementById('productCategory');if(!select)return;
+ select.innerHTML='<option value="">Sans catégorie</option>'+productCategories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+ select.value=selected&&productCategories.includes(selected)?selected:'';
+}
+function openCategoryManager(){
+ ensureProductCategories();renderCategoryManager();
+ document.getElementById('categoryManager').style.display='block';
+}
+function closeCategoryManager(){document.getElementById('categoryManager').style.display='none';}
+function renderCategoryManager(){
+ const host=document.getElementById('categoryManagerList');if(!host)return;
+ host.innerHTML=productCategories.map((c,i)=>`<div class="row" style="align-items:center;margin:6px 0"><input aria-label="Nom de la catégorie ${i+1}" id="categoryName${i}" value="${esc(c)}"><button type="button" class="secondary" onclick="renameProductCategory(${i})">Modifier</button></div>`).join('');
+}
+function addProductCategory(){
+ const input=document.getElementById('newCategoryName'),name=(input.value||'').trim();
+ if(!name)return alert('Saisis un nom de catégorie.');
+ if(productCategories.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase()))return alert('Cette catégorie existe déjà.');
+ productCategories.push(name);put('fp_product_categories',productCategories);input.value='';
+ renderCategoryManager();renderProductCategorySelect(document.getElementById('productCategory')?.value||'');
+}
+function renameProductCategory(index){
+ const oldName=productCategories[index],input=document.getElementById('categoryName'+index),newName=(input?.value||'').trim();
+ if(!newName)return alert('Le nom de catégorie ne peut pas être vide.');
+ if(productCategories.some((c,i)=>i!==index&&c.toLocaleLowerCase()===newName.toLocaleLowerCase()))return alert('Cette catégorie existe déjà.');
+ if(newName===oldName)return;
+ products=products.map(p=>p.category===oldName?{...p,category:newName}:p);
+ productCategories[index]=newName;
+ put('fp_products',products);put('fp_product_categories',productCategories);
+ renderCategoryManager();renderProductCategorySelect(newName);renderProducts();
+}
+function productCard(p){return `<div class="card product" role="button" tabindex="0" onclick="openProductDetail('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProductDetail('${p.id}')}"><div style="min-width:0"><b>${esc(p.name)}</b><div class="product-meta">${esc(p.category)} · ${esc(p.unit)} · ${Math.round(Number(p.kcal))} kcal · ${Number(p.protein||0)} g prot.</div></div><span class="chevron">›</span></div>`}
 function openProductDetail(id){
  const p=products.find(x=>x.id===id);if(!p)return;
  const slots=p.availability?.length?p.availability.map(a=>a.day+' · '+a.meal).join(', '):((p.days||[]).length?(p.days||[]).join(', '):'Disponibilité non définie');
- document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><p class="muted">${esc(({starch:'Féculents',protein:'Protéines',vegetable:'Légumes',fruit:'Fruits',dairy:'Produits laitiers',fat:'Matières grasses',extra:'Compléments',prepared:'Plats composés'})[p.foodCategory]||p.category||'Catégorie à vérifier')} · ${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le nom et le poids d'une portion. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertUnitName">Nom de l'unité</label><input id="convertUnitName" placeholder="Ex. pot, portion" value="${esc(p.unitName||'')}"></div><div><label for="convertGrams">Grammage (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div></div><button class="primary" style="margin-top:10px" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
+ document.getElementById('productDetailContent').innerHTML=`<button class="back" onclick="closeProductDetail()">← Retour à la bibliothèque</button><h2>${esc(p.name)}</h2><div class="product-category-detail"><small>Catégorie</small><b>${esc(p.category||'Non renseignée')}</b></div><p class="muted">${esc(p.unit)}</p><div class="detail-grid"><div class="detail-value"><small>Calories</small><b>${Math.round(Number(p.kcal))} kcal</b></div><div class="detail-value"><small>Protéines</small><b>${Number(p.protein||0)} g</b></div><div class="detail-value"><small>Glucides</small><b>${Number(p.carbs||0)} g</b></div><div class="detail-value"><small>Lipides</small><b>${Number(p.fat||0)} g</b></div></div><div class="card"><b>Conditionnement</b><div class="muted">${esc(p.packageQuantity||'Non renseigné')}</div><b style="display:block;margin-top:10px">Marque</b><div class="muted">${esc(p.brand||'Non renseignée')}</div><b style="display:block;margin-top:10px">Code-barres</b><div class="muted">${esc(p.barcode||'Non renseigné')}</div></div><div class="card"><b>Disponibilités</b><div class="muted">${esc(slots)}</div></div><div class="card" style="margin-top:12px"><b>Convertir en unité</b><p class="muted">Définis le nom et le poids d'une portion. Les valeurs nutritionnelles seront recalculées sur cette quantité, sans créer de nouveau produit.</p><div class="row" style="align-items:end"><div><label for="convertUnitName">Nom de l'unité</label><input id="convertUnitName" placeholder="Ex. pot, portion" value="${esc(p.unitName||'')}"></div><div><label for="convertGrams">Grammage (g)</label><input id="convertGrams" type="number" min="1" step="1" placeholder="Ex. 250" value="${Number(p.unitGrams||p.conversionBase?.unitGrams||0)||''}"></div></div><button class="primary" style="margin-top:10px" type="button" onclick="convertProductToUnit('${p.id}')">Convertir ce produit</button><small class="muted" id="convertHelp">Disponible pour les produits renseignés pour 100 g ou déjà convertis.</small></div><div class="row" style="margin-top:12px"><button class="secondary" onclick="editProduct('${p.id}')">✏️ Modifier</button><button class="smallbtn" onclick="removeProduct('${p.id}');closeProductDetail()">Supprimer</button></div>`;
  document.getElementById('productDetailOverlay').classList.add('open');
 }
 let editingProductId=null;
 function startNewProduct(){
  editingProductId=null;
- const form=document.getElementById('productForm');form.reset();
+ const form=document.getElementById('productForm');form.reset();ensureProductCategories();renderProductCategorySelect('');
  document.querySelectorAll('.availability-slot').forEach(x=>x.checked=false);
  document.getElementById('customUnitFields').style.display='none';
  document.getElementById('customUnitName').required=false;
@@ -367,14 +421,15 @@ function startNewProduct(){
  document.querySelector('#add h1').textContent='Ajouter un produit';
  closeProductDetail();show('add');
 }
+let productLibraryReturnScroll=0;
 function editProduct(id){
+ productLibraryReturnScroll=window.scrollY||0;
  const p=products.find(x=>x.id===id);if(!p)return;
  closeProductDetail();
  editingProductId=id;
  show('add');
  document.querySelector('#add h1').textContent='Modifier un produit';
- document.getElementById('pname').value=p.name||'';
- document.getElementById('foodCategory').value=p.foodCategory||categoryFromRole(classifyFoodLegacy(p));
+ document.getElementById('pname').value=p.name||'';ensureProductCategories();renderProductCategorySelect(p.category||'');
  
  document.getElementById('unit').value=['100 g','100 ml','1 unité'].includes(p.unit)?p.unit:'custom';
  if(document.getElementById('unit').value==='custom'){toggleCustomUnit();document.getElementById('customUnitName').value=p.unitName||String(p.unit||'').replace(/^1\s*/,'').split(' (')[0];document.getElementById('customUnitAmount').value=p.unitGrams||''}
@@ -642,8 +697,13 @@ function weekdayName(d){return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','V
 function habitFor(day,meal){return habits.filter(h=>(h.days||[]).includes(day)&&h.meal===meal)}
 function productUnitInfo(p){
  const u=String(p.unit||'100 g').trim();
- if(/100\s*g/i.test(u))return {kind:'gram',label:'g',grams:100};
+ if(/100\s*g/i.test(u)&&!Number(p.unitGrams))return {kind:'gram',label:'g',grams:100};
  if(/100\s*ml/i.test(u))return {kind:'ml',label:'ml',grams:100};
+ // Les métadonnées de conversion font foi : elles restent fiables même si le libellé
+ // de l'unité a été modifié ou provient d'une ancienne version de la bibliothèque.
+ const storedGrams=Number(p.unitGrams||p.conversionBase?.unitGrams||0);
+ const storedName=String(p.unitName||'').trim();
+ if(storedGrams>0)return {kind:'piece',label:storedName||u.replace(/^1\s*/, '').replace(/\s*\(.*\)\s*$/,''),grams:storedGrams};
  const m=u.match(/^\s*1\s+(.+?)\s*\((\d+(?:[.,]\d+)?)\s*g\)\s*$/i);
  if(m)return {kind:'piece',label:m[1].trim(),grams:Number(m[2].replace(',','.'))};
  if(/^1\s*unité$/i.test(u))return {kind:'piece',label:'unité',grams:0};
@@ -656,9 +716,11 @@ function formatMealProductLine(item){const p=item.p||item,n=Number(item.n??item.
  else {const count=Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');quantity=`${count} ${info.label}`;}
  return `${quantity} de ${esc(p.name)}`;
 }
-function classifyFoodLegacy(p){
+function classifyFood(p){
  const n=String(p.name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- if(/riz|pate|semoule|quinoa|boulgour|couscous|pain|flocon|avoine|cereale|muesli|pomme de terre|patate|gnocchi|wrap|tortilla|polenta|mais|lentille|pois chiche|haricot rouge|haricot blanc|feve/.test(n))return 'carb';
+ // Priorité aux familles alimentaires explicites pour éviter de classer les légumineuses
+ // ou les féculents riches en protéines comme de la viande.
+ if(/riz|pate|pates|semoule|quinoa|boulgour|couscous|pain|flocon|avoine|cereale|muesli|pomme de terre|patate|gnocchi|wrap|tortilla|polenta|mais|lentille|pois chiche|haricot rouge|haricot blanc|feve/.test(n))return 'carb';
  if(/poulet|dinde|boeuf|jambon|thon|saumon|poisson|cabillaud|oeuf|crevette|steak|viande|tofu|tempeh|escalope|saucisse|colin|merlu|truite|proteine|protein/.test(n))return 'protein';
  if(/skyr|fromage blanc|yaourt|petit suisse|faisselle|lait|fromage frais|cottage cheese|dessert lacte/.test(n))return 'dairy';
  if(/legume|salade|tomate|carotte|courgette|brocoli|haricot vert|epinard|poireau|concombre|champignon|ratatouille|chou|aubergine|poivron|endive/.test(n))return 'veg';
@@ -666,138 +728,124 @@ function classifyFoodLegacy(p){
  if(/huile|beurre|amande|noix|cacahuete|avocat|puree d'oleagineux|miel|chocolat|creme/.test(n))return 'fat';
  const pr=Number(p.protein)||0,k=Number(p.kcal)||0;
  if(pr>=15)return 'protein';
- if(pr>0&&k>0&&pr/k>0.07)return 'protein';
+ if(/yaourt|lait|fromage/.test(n))return 'dairy';
+ if(pr>0&&pr/k>0.07)return 'protein';
  return 'other';
-}
-function categoryFromRole(role){
- return ({carb:'starch',protein:'protein',veg:'vegetable',fruit:'fruit',dairy:'dairy',fat:'fat',prepared:'prepared',other:'extra'})[role]||'extra';
-}
-function classifyFood(p){
- const c=p.foodCategory;
- if(c==='starch')return 'carb';
- if(c==='protein')return 'protein';
- if(c==='vegetable')return 'veg';
- if(c==='fruit')return 'fruit';
- if(c==='dairy')return 'dairy';
- if(c==='fat')return 'fat';
- if(c==='prepared')return 'prepared';
- if(c==='extra')return 'other';
- return classifyFoodLegacy(p);
 }
 function productPortion(p,role){
  const info=productUnitInfo(p);
- let grams=role==='protein'?130:role==='carb'?85:role==='veg'?180:role==='fruit'?130:role==='dairy'?150:role==='fat'?8:role==='prepared'?350:80;
+ // Portions réalistes par famille : féculents secs autour de 75-90 g,
+ // pommes de terre/légumineuses autour de 180 g, légumes 150-200 g.
+ let grams=role==='protein'?130:role==='carb'?85:role==='veg'?180:role==='fruit'?130:role==='dairy'?150:role==='fat'?8:80;
  const name=String(p.name||'').toLowerCase();
  if(role==='carb'&&/pomme de terre|patate|lentille|pois chiche|haricot/.test(name))grams=180;
  if(info.kind==='gram'||info.kind==='ml')return Math.round(grams/5)*5;
  let count=1;
  if(info.grams)count=Math.max(1,Math.min(3,Math.round(grams/info.grams)));
  else count=1;
+ // Une unité physique est indivisible : jamais de 0,5 ou 1,5 unité.
  return Math.max(1,Math.round(count));
 }
-function mealProducts(day,meal){
- // Une disponibilité vide ou non renseignée ne donne jamais accès à toute la bibliothèque.
- return products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal));
-}
-function chooseMealProduct(list,role,rotation=0){
- const candidates=list.filter(p=>classifyFood(p)===role);
- if(!candidates.length)return null;
- // Rotation stable : évite de toujours choisir le même aliment sans mélanger des familles différentes.
- return candidates[Math.abs(rotation)%candidates.length];
-}
-function makeMealLine(p,role){
- const n=productPortion(p,role);
- return {p,n,macro:macroFor(p,n),role};
-}
+function mealProducts(day,meal){const available=products.filter(p=>(p.availability||[]).some(s=>s.day===day&&s.meal===meal));return available.length?available:products;}
 function buildMeal(day,meal,targetKcal,targetProtein,rotation=0){
  const fixed=habitFor(day,meal);
  if(fixed.length){
   const lines=[];fixed.forEach(h=>(h.items||[]).forEach(it=>{const p=products.find(x=>x.id===it.productId);if(p){const info=productUnitInfo(p);let n=+(it.quantity||((info.kind==='gram'||info.kind==='ml')?100:1));if(info.kind!=='gram'&&info.kind!=='ml')n=Math.max(1,Math.round(n));lines.push({p,n,macro:macroFor(p,n),role:classifyFood(p)})}}));
   return {meal,lines,fixed:true};
  }
- const list=mealProducts(day,meal);
- if(!list.length)return {meal,lines:[],missing:true,missingReason:'Aucun produit n’est disponible sur ce créneau.'};
-
- // Un plat composé constitue déjà le repas : on ne lui associe pas arbitrairement d'autres aliments.
- const prepared=chooseMealProduct(list,'prepared',rotation);
- if(prepared)return {meal,lines:[makeMealLine(prepared,'prepared')],prepared:true};
-
- const lines=[],missingRoles=[];
- const add=(role,required=true,offset=0)=>{
-  const p=chooseMealProduct(list,role,rotation+offset);
-  if(p)lines.push(makeMealLine(p,role));
-  else if(required)missingRoles.push(role);
- };
- if(meal==='Petit-déjeuner'){
-  // Petit-déjeuner : base laitière ou protéinée, féculent de petit-déjeuner facultatif, fruit facultatif.
-  let base=chooseMealProduct(list,'dairy',rotation);
-  let baseRole='dairy';
-  if(!base){base=chooseMealProduct(list,'protein',rotation);baseRole='protein';}
-  if(base)lines.push(makeMealLine(base,baseRole));else missingRoles.push('dairy/protein');
-  add('carb',false,1);add('fruit',false,2);
- }else if(meal==='Collation'){
-  // Collation : un ou deux éléments adaptés, pas de repas complet forcé.
-  let base=chooseMealProduct(list,'dairy',rotation);
-  let role='dairy';
-  if(!base){base=chooseMealProduct(list,'fruit',rotation);role='fruit';}
-  if(!base){base=chooseMealProduct(list,'protein',rotation);role='protein';}
-  if(base)lines.push(makeMealLine(base,role));else missingRoles.push('dairy/fruit/protein');
-  if(role!=='fruit')add('fruit',false,1);
- }else{
-  // Déjeuner et dîner : trio de base obligatoire, sans substitution par un aliment hors catégorie.
-  add('protein',true,0);add('carb',true,1);add('veg',true,2);
-  add('fat',false,3);
- }
- return {meal,lines,missingRoles};
-}
-let generatedDraft={};
-function recalculateMealMacros(meals){
- meals.forEach(m=>m.lines.forEach(l=>{l.macro=macroFor(l.p,l.n)}));
- const totals=()=>meals.reduce((a,m)=>{m.lines.forEach(l=>{a.kcal+=l.macro.kcal;a.protein+=l.macro.protein});return a},{kcal:0,protein:0});
- return totals();
-}
-function tuneMenuToTargets(meals,kcalGoal,proteinGoal){
- // Les habitudes validées et les plats composés restent intacts. On ajuste seulement
- // les portions des aliments simples : protéines/laitages pour les protéines,
- // féculents pour l'énergie. Les unités à la pièce restent entières.
- const adjustable=meals.filter(m=>!m.fixed&&!m.prepared).flatMap(m=>m.lines);
- const proteinLines=adjustable.filter(l=>l.role==='protein'||l.role==='dairy');
- const carbLines=adjustable.filter(l=>l.role==='carb');
- const base=adjustable.map(l=>l.n);
- let best=null;
- const factors=[];for(let f=.5;f<=3.001;f+=.05)factors.push(Math.round(f*100)/100);
- for(const pf of (proteinLines.length?factors:[1])){
-  for(const cf of (carbLines.length?factors:[1])){
-   adjustable.forEach((l,i)=>{
-    const factor=(l.role==='protein'||l.role==='dairy')?pf:l.role==='carb'?cf:1;
-    const info=productUnitInfo(l.p),raw=base[i]*factor;
-    l.n=(info.kind==='gram'||info.kind==='ml')?Math.max(5,Math.round(raw/5)*5):Math.max(1,Math.round(raw));
-   });
-   const t=recalculateMealMacros(meals),ke=Math.abs(t.kcal-kcalGoal)/kcalGoal,pe=Math.abs(t.protein-proteinGoal)/proteinGoal;
-   const score=ke*ke+pe*pe+0.0008*((pf-1)*(pf-1)+(cf-1)*(cf-1));
-   if(!best||score<best.score)best={score,pf,cf,values:adjustable.map(l=>l.n),totals:t};
+ const list=mealProducts(day,meal);if(!list.length)return {meal,lines:[],missing:true};
+ const scored=list.map((p,i)=>({p,role:classifyFood(p),i})),wants=
+  meal==='Petit-déjeuner'?['dairy','carb','fruit','protein']:
+  meal==='Déjeuner'?['protein','carb','veg','fat']:
+  meal==='Collation'?['dairy','fruit','protein']:
+  ['protein','carb','veg','fat'];
+ const lines=[],used=new Set();
+ wants.forEach((role,idx)=>{
+  let candidates=scored.filter(x=>x.role===role&&!used.has(x.p.id));
+  if(!candidates.length&&['carb','veg','protein','dairy'].includes(role))candidates=products.filter(p=>classifyFood(p)===role&&!used.has(p.id)).map((p,i)=>({p,role,i}));
+  if(!candidates.length&&role==='dairy')candidates=scored.filter(x=>x.role==='protein'&&!used.has(x.p.id));
+  if(!candidates.length&&role==='protein')candidates=scored.filter(x=>x.role==='dairy'&&!used.has(x.p.id));
+  if(!candidates.length&&role==='carb')candidates=scored.filter(x=>x.role==='other'&&!used.has(x.p.id)&&Number(x.p.carbs||0)>=15);
+  if(!candidates.length)return;
+  // Mélange aléatoire à chaque génération, avec un léger avantage aux aliments adaptés
+  // au rôle demandé et aux portions nutritionnellement cohérentes.
+  candidates.sort((a,b)=>{
+   const ma=macroFor(a.p,productPortion(a.p,role)),mb=macroFor(b.p,productPortion(b.p,role));
+   const score=x=>Math.random()*3+(role==='protein'?Math.min(25,x.protein)/25:role==='carb'?Math.min(45,x.carbs)/45:0);
+   return score(mb)-score(ma);
+  });
+  const pick=candidates[(Math.floor(Math.random()*Math.min(candidates.length,4))+Math.abs(rotation+idx))%Math.min(candidates.length,4)];
+  used.add(pick.p.id);const n=productPortion(pick.p,role);
+  lines.push({p:pick.p,n,macro:macroFor(pick.p,n),role});
+ });
+ // Rééquilibre les portions protéinées vers la cible du repas sans dépasser des portions raisonnables.
+ const proteinLine=lines.find(x=>x.role==='protein');
+ if(proteinLine&&targetProtein>0){
+  const otherProtein=lines.filter(x=>x!==proteinLine).reduce((v,x)=>v+x.macro.protein,0);
+  const needed=Math.max(0,targetProtein-otherProtein);
+  const info=productUnitInfo(proteinLine.p),base=macroFor(proteinLine.p,1).protein;
+  if(base>0){
+   let wanted=needed/base;
+   if(info.kind==='gram'||info.kind==='ml')wanted=Math.max(70,Math.min(220,Math.round(wanted/5)*5));
+   else wanted=Math.max(1,Math.min(3,Math.round(wanted)));
+   proteinLine.n=Math.max(proteinLine.n,wanted);proteinLine.macro=macroFor(proteinLine.p,proteinLine.n);
   }
  }
- if(best){adjustable.forEach((l,i)=>l.n=best.values[i]);recalculateMealMacros(meals)}
- return recalculateMealMacros(meals);
+ // Les féculents sont une composante obligatoire des déjeuners et dîners dès qu'un produit adapté existe.
+ const carbLine=lines.find(x=>x.role==='carb');
+ if(carbLine){
+  const current=lines.reduce((v,x)=>v+x.macro.kcal,0),info=productUnitInfo(carbLine.p);
+  const kcalGap=Math.max(0,targetKcal-current);
+  const kcalPer=macroFor(carbLine.p,1).kcal;
+  if(kcalPer>0&&kcalGap>0){
+   const max=info.kind==='gram'||info.kind==='ml'?150:2.5;
+   const min=info.kind==='gram'||info.kind==='ml'?70:.5;
+   const desired=Math.max(min,Math.min(max,carbLine.n+(kcalGap/kcalPer)*.55));
+   carbLine.n=info.kind==='gram'||info.kind==='ml'?Math.round(desired/5)*5:Math.max(1,Math.round(desired));
+   carbLine.macro=macroFor(carbLine.p,carbLine.n);
+  }
+ }
+ return {meal,lines};
 }
+let generatedDraft={};
 function generateMenus(){
- const dates=[...plannerSelectedDates].sort().filter(x=>!dayLogs[x]?.planned);if(!dates.length)return alert('Sélectionne au moins une date non validée.');
+ const today=isoDateLocal(new Date());
+ const dates=[...plannerSelectedDates].filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)&&x>=today&&!dayLogs[x]?.planned).sort();
+ if(!dates.length)return alert('Sélectionne au moins une date future ou aujourd’hui qui n’a pas déjà de programme validé.');
  const kcalGoal=Number(goals?.kcal||energyProfile?.target||0),proteinGoal=Number(goals?.protein||energyProfile?.protein||0);
  if(!kcalGoal||!proteinGoal)return alert('Renseigne et enregistre tes objectifs de calories et de protéines dans Profil avant de générer un programme.');
- const defs=[['Petit-déjeuner',.25,.22],['Déjeuner',.35,.32],['Collation',.15,.18],['Dîner',.25,.28]];
- generatedDraft={};let html='';
- dates.forEach((raw,dayIndex)=>{const date=new Date(raw+'T12:00:00'),day=weekdayName(date),sports=sportsForDate(raw);
- const meals=defs.map(([meal,share,proteinShare],mealIndex)=>buildMeal(day,meal,kcalGoal*share,proteinGoal*proteinShare,dayIndex+mealIndex));
- const totals=tuneMenuToTargets(meals,kcalGoal,proteinGoal),kcal=totals.kcal,protein=totals.protein,sportKcal=sports.reduce((a,x)=>a+Number(x.kcal||0),0);
- generatedDraft[raw]={date:raw,meals,sports,kcal,protein,sportKcal};
- const kcalPct=Math.round(kcal/kcalGoal*100),proteinPct=Math.round(protein/proteinGoal*100);
- const tdee=Number(calculateEnergy()?.tdee||2150),forecastDeficit=Math.round(tdee+sportKcal-kcal);
- const kcalOk=Math.abs(kcal-kcalGoal)/kcalGoal<=.03,proteinOk=Math.abs(protein-proteinGoal)/proteinGoal<=.03;
- html+=`<div class="card"><h3>${esc(day)} ${raw.split('-').reverse().join('/')}</h3>`;
- meals.forEach(m=>{const missing=m.missingRoles?.length?`<p class="muted">À compléter dans la bibliothèque : ${esc(m.missingRoles.map(r=>({protein:'une protéine',carb:'un féculent',veg:'un légume','dairy/protein':'un laitage ou une protéine','dairy/fruit/protein':'un produit adapté à la collation'}[r]||r).join(', ')))} disponible(s) sur ce créneau.</p>`:'';html+=`<div class="menu-slot"><b>${esc(m.meal)} :</b>${m.lines.length?m.lines.map(l=>`<div>${formatMealProductLine(l)}</div>`).join(''):'<p class="muted">Aucun produit disponible sur ce créneau.</p>'}${missing}</div>`});
- html+=`<div class="menu-slot"><b>Bilan nutritionnel</b><div>Calories : <b>${Math.round(kcal)} / ${kcalGoal} kcal</b> (${kcalPct} %) ${kcalOk?'✓':'⚠️'}</div><div>Protéines : <b>${protein.toFixed(1)} / ${proteinGoal} g</b> (${proteinPct} %) ${proteinOk?'✓':'⚠️'}</div><div class="muted">Tolérance demandée : ±3 % sur chaque objectif. ${kcalOk&&proteinOk?'Les deux objectifs sont respectés.':'Les objectifs ne peuvent pas tous deux être atteints avec les produits, disponibilités et unités actuellement sélectionnés.'}</div><div style="margin-top:8px"><b>Déficit prévisionnel : ${forecastDeficit>0?'+':''}${forecastDeficit} kcal</b><div class="muted">Dépense de référence ${tdee} kcal + sport prévu ${sportKcal} kcal − apport ${Math.round(kcal)} kcal.</div></div></div><p><b>Sport :</b> ${sports.length?sports.map(x=>esc(x.name)+' · '+x.minutes+' min · '+x.kcal+' kcal').join(' / '):'Aucun prévu'}</p><button class="primary" onclick="validateDraftDay('${raw}')">Valider cette date</button></div>`;
+ const tolerance=.03,defs=[['Petit-déjeuner',.25,.22],['Déjeuner',.35,.32],['Collation',.15,.18],['Dîner',.25,.28]];
+ generatedDraft={};let html='',failed=[];
+ dates.forEach((raw,dayIndex)=>{
+  // Construire plusieurs menus complets puis retenir uniquement une journée qui
+  // respecte simultanément les deux objectifs à ±3 %. Un clic sur Générer relance
+  // intégralement la recherche et peut donc proposer une autre combinaison.
+  const date=new Date(raw+'T12:00:00'),day=weekdayName(date),sports=sportsForDate(raw);
+  // Le déficit cible reste fixe : le sport augmente la dépense du jour et donc le budget alimentaire.
+  const sportKcal=sports.reduce((a,x)=>a+Number(x.kcal||0),0);
+  const dayKcalGoal=kcalGoal+sportKcal;
+  let best=null,bestScore=Infinity,accepted=null;
+  const attempts=1400;
+  for(let attempt=0;attempt<attempts;attempt++){
+   const meals=defs.map(([meal,share,proteinShare],mealIndex)=>buildMeal(day,meal,dayKcalGoal*share,proteinGoal*proteinShare,dayIndex+mealIndex+attempt*7));
+   const kcal=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.kcal,0),0);
+   const protein=meals.reduce((a,m)=>a+m.lines.reduce((b,l)=>b+l.macro.protein,0),0);
+   const kcalError=Math.abs(kcal-dayKcalGoal)/dayKcalGoal,proteinError=Math.abs(protein-proteinGoal)/proteinGoal;
+   const score=Math.max(kcalError,proteinError)*1000+(kcalError+proteinError)*100;
+   if(score<bestScore){bestScore=score;best={meals,kcal,protein,kcalError,proteinError};}
+   if(kcalError<=tolerance&&proteinError<=tolerance){accepted=best={meals,kcal,protein,kcalError,proteinError};break;}
+  }
+  if(!accepted){failed.push({date:raw,day,best});return;}
+  generatedDraft[raw]={date:raw,meals:accepted.meals,sports,kcal:accepted.kcal,protein:accepted.protein,sportKcal};
+  const kcalPct=accepted.kcal/dayKcalGoal*100,proteinPct=accepted.protein/proteinGoal*100;
+  html+=`<div class="card"><h3>${esc(day)} ${raw.split('-').reverse().join('/')}</h3>`;
+  accepted.meals.forEach(m=>{html+=`<div class="menu-slot"><b>${esc(m.meal)} :</b>${m.lines.length?m.lines.map(l=>`<div>${formatMealProductLine(l)}</div>`).join(''):'<p class="muted">Aucun produit dans ta bibliothèque pour composer ce repas.</p>'}</div>`});
+  html+=`<p><b>Bilan nutritionnel :</b> ${Math.round(accepted.kcal)} / ${dayKcalGoal} kcal (${kcalPct.toFixed(1)} %) · ${accepted.protein.toFixed(1)} / ${proteinGoal} g protéines (${proteinPct.toFixed(1)} %)</p><p><b>Sport :</b> ${sports.length?sports.map(x=>esc(x.name)+' · '+x.minutes+' min · '+x.kcal+' kcal').join(' / '):'Aucun prévu'}</p><button class="primary" onclick="validateDraftDay('${raw}')">Valider cette date</button></div>`;
  });
+ if(failed.length){
+  html+=failed.map(x=>{const b=x.best;return `<div class="card" style="border:1px solid #d97706"><h3>${esc(x.day)} ${x.date.split('-').reverse().join('/')}</h3><b>Impossible de trouver une combinaison adaptée aux objectifs de la journée.</b><p class="muted">Meilleur résultat trouvé après 1 400 essais : ${b?Math.round(b.kcal)+' kcal ('+(b.kcalError*100).toFixed(1)+' %) et '+b.protein.toFixed(1)+' g de protéines ('+(b.proteinError*100).toFixed(1)+' %)':'aucune combinaison exploitable'}.</p><p class="muted">Aucun programme ne peut être validé tant que les objectifs ne sont pas atteints. Vérifie les produits et leurs disponibilités pour ce jour.</p></div>`}).join('');
+ }
+ if(!html)html='<div class="card">Aucune combinaison exploitable avec les produits actuellement disponibles pour ces dates.</div>';
  plannerOutput.innerHTML=html;
 }
 function validateDraftDay(date){const draft=generatedDraft[date];if(!draft||dayLogs[date]?.planned)return alert('Date déjà validée ou programme absent.');
@@ -822,7 +870,7 @@ document.getElementById('productForm').addEventListener('submit',e=>{
  const updatedProduct={
   id:editingProductId||Date.now().toString(),
   name:pname.value.trim(),
-  foodCategory:document.getElementById('foodCategory').value,
+  category:document.getElementById('productCategory').value||'',
   unit:custom?(applyGramConversion?`1 ${unitName} (${rawAmount} g)`:`1 ${unitName}`):unit.value,
   unitName:custom?unitName:(previousProduct?.unitName||''),
   unitGrams:applyGramConversion?rawAmount:null,
